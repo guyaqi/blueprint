@@ -1,0 +1,55 @@
+
+
+.name-package {
+  color: #ff7300;
+}
+
+.name-class {
+  color: #00ffa8;
+}
+
+.name-member {
+  color: #ff006a;
+}
+
+.name-function {
+  color: #0085ff;
+}
+
+.name-constant {
+  color: #00ff26
+}
+
+.name-local {
+  color: #ffe500;
+}
+
+.text-link {
+  color: dodgerblue;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.text-minor {
+  color: #ffffff40;
+}
+
+.text-pre {
+  white-space: pre;
+}
+
+.text-tree {
+  white-space: pre;
+  line-height: 1rem;
+}
+
+.tac {
+  text-align: center;
+}
+
+.text-dense {
+  line-height: 1.2rem;
+}

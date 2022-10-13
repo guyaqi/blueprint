@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="32px" height="32px" viewBox="0 0 32 32" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <rect width="32" height="32" id="artboard_1" />
+    <clipPath id="clip_1">
+      <use xlink:href="#artboard_1" clip-rule="evenodd" />
+    </clipPath>
+  </defs>
+  <g id="Grid" clip-path="url(#clip_1)">
+    <use xlink:href="#artboard_1" stroke="none" fill="#2E2F32" />
+    <g id="编组" transform="translate(0 0.5)" artboard="d3df43cf-9627-408e-85f5-91ff172c3939">
+      <path d="M0 15L32 15" id="行间距" fill="none" fill-rule="evenodd" stroke="#3B3C3F" stroke-width="1" stroke-linecap="square" />
+      <path d="M15.5 31L15.5 0" id="行间距-2" fill="none" fill-rule="evenodd" stroke="#3B3C3F" stroke-width="1" stroke-linecap="square" />
+    </g>
+  </g>
+</svg>

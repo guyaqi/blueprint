@@ -1,9 +1,9 @@
 {
-  "name": "electron-vue-vite",
+  "name": "blueprint",
   "version": "2.1.0",
   "main": "dist-electron/main/index.js",
-  "description": "Really simple Electron + Vue + Vite boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "description": "Blueprint - codeless programing",
+  "author": "guyaqi",
   "license": "MIT",
   "private": true,
   "scripts": {
@@ -34,5 +34,14 @@
     "vite",
     "vue3",
     "vue"
-  ]
+  ],
+  "dependencies": {
+    "@types/lodash": "^4.14.186",
+    "@vueuse/core": "^9.3.0",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.4",
+    "normalize.css": "^8.0.1",
+    "sass": "^1.55.0",
+    "vuex": "^4.0.2"
+  }
 }

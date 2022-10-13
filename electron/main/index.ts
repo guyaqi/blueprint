@@ -15,6 +15,8 @@ process.env.PUBLIC = app.isPackaged ? process.env.DIST : join(process.env.DIST_E
 import { app, BrowserWindow, shell, ipcMain } from 'electron'
 import { release } from 'os'
 import { join } from 'path'
+import { useChannels } from './channel'
+import { initMenu } from './menu'
 
 // Disable GPU Acceleration for Windows 7
 if (release().startsWith('6.1')) app.disableHardwareAcceleration()
@@ -40,8 +42,10 @@ const indexHtml = join(process.env.DIST, 'index.html')
 
 async function createWindow() {
   win = new BrowserWindow({
-    title: 'Main window',
+    title: 'Blueprint',
     icon: join(process.env.PUBLIC, 'favicon.ico'),
+    width: 1200,
+    height: 800,
     webPreferences: {
       preload,
       // Warning: Enable nodeIntegration and disable contextIsolation is not secure in production
@@ -70,9 +74,18 @@ async function createWindow() {
     if (url.startsWith('https:')) shell.openExternal(url)
     return { action: 'deny' }
   })
+
+  return win
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(async () => {
+  const win = await createWindow()
+  initMenu(win.webContents)
+  useChannels(win.webContents)
+})
+
+
+
 
 app.on('window-all-closed', () => {
   win = null
@@ -111,3 +124,5 @@ ipcMain.handle('open-win', (event, arg) => {
     // childWindow.webContents.openDevTools({ mode: "undocked", activate: true })
   }
 })
+
+

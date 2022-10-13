@@ -1,0 +1,127 @@
+<script setup lang="ts">
+import { onMounted, Ref, ref } from 'vue'
+import store from '../../store';
+import { Point } from '../../util/blueprint/math';
+import { BPSType, BPS, BPSInstance } from '../../util/blueprint/slot';
+import { shell } from '../../util/shell/shell';
+import BSlotIcon from './BSlotIcon.vue';
+
+const { instance, } = defineProps<{ instance: BPSInstance }>()
+
+const config = instance.config
+
+const isProcess = config.type == BPSType.PROCESS
+const isData = config.type == BPSType.DATA
+const isLiterial = config.type == BPSType.LITERIAL
+
+const iconRef = ref(null as (null | HTMLElement))
+
+
+const click = () => {
+  // const slotEl = iconRef.value
+  // const iconEl = slotEl!.querySelector('.icon-wrapper')!
+  // let parent = iconEl!.parentElement!
+
+  // // depth limit 10
+  // for (let i=0;i<10;i++) {
+  //   parent = parent.parentElement!
+  //   if (parent?.classList.contains('graph-canvas')) {
+  //     break
+  //   }
+  // }
+
+  // if (!parent) {
+  //   return
+  // }
+
+  // const iconBox = iconEl.getBoundingClientRect()
+  // const parentBox = parent.getBoundingClientRect()
+
+  // const position: Point = {
+  //   x: iconBox.left + iconBox.width/2 - parentBox.left,
+  //   y: iconBox.top + iconBox.height/2 - parentBox.top,
+  // }
+
+  // console.log(position)
+
+  store.state.service!.oCtx!.clickSlot(instance)
+}
+
+const root: Ref<null | HTMLElement> = ref(null)
+let canvasEl: (null | HTMLElement) = null
+
+const NODE_CLASSNAME = 'bp-node'
+
+// (mutationsList: any, observer: any)
+const mountedNodeMove = () => {
+  let iconRect = iconRef.value!.getBoundingClientRect()
+  const canvasRect = canvasEl!.getBoundingClientRect()
+
+  const position: Point = {
+    x: iconRect.left + iconRect.width / 2 - canvasRect.left,
+    y: iconRect.top + iconRect.height / 2 - canvasRect.top,
+  }
+
+  instance.position = position
+}
+
+onMounted(() => {
+  canvasEl = document.querySelector('.graph-canvas')
+
+  let parent = root.value!.parentNode as HTMLElement
+  for(let i=0; i<10; i++) {
+    if (parent.classList.contains(NODE_CLASSNAME)) {
+      break
+    }
+    if (!parent.parentElement) {
+      break
+    }
+    parent = parent.parentElement as any
+  }
+  if (!parent.classList.contains(NODE_CLASSNAME)) {
+    console.error('slot initial failed', parent)
+  }
+  
+  const observer = new MutationObserver((mutationsList: any, observer: any) => { mountedNodeMove() });
+
+  observer.observe(parent as Node, { attributes: true, childList: true, subtree: true });
+
+  mountedNodeMove()
+})
+</script>
+  
+<template>
+  <div ref="root" class="bslot-root" @mousedown.stop @click.stop="click">
+    <div v-if="isLiterial" class="bslot">
+      <div v-if="config.name">{{ config.name }}</div>
+      <input class="slot-input" src="" alt="">
+    </div>
+    <div v-else class="bslot" ref="iconRef">
+      <BSlotIcon v-if="!config.isOut" :slot-type="config.type" :connect="true" />
+      <div v-if="config.name">{{ config.name }}</div>
+      <BSlotIcon v-if="config.isOut" :slot-type="config.type" :connect="true" />
+    </div>
+  </div>
+</template>
+  
+<style scoped lang="scss">
+.bslot {
+  display: flex;
+  align-items: center;
+  // padding: 0 6px;
+  height: 32px;
+  width: fit-content;
+  white-space: pre;
+}
+
+.slot-input {
+  background-color: transparent;
+  outline: none;
+  border: 1px solid #333333;
+  border-radius: 3px;
+  width: 120px;
+  margin: 0 8px;
+  color: white;
+}
+</style>
+    

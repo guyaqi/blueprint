@@ -1,68 +1,80 @@
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import HelloWorld from './components/HelloWorld.vue'
+import Shell from './components/Shell/Shell.vue';
+import Sidebar from './components/Sidebar/Sidebar.vue';
+import Editor from './components/Editor/Editor.vue';
+import Menubar from './components/Menubar.vue';
+import GuideMask from './components/GuideMask.vue';
+import PopupRoot from './components/Popup/PopupRoot.vue';
+import store from './store';
+import { onMounted, ref } from 'vue';
+import { workspace } from './util/workspace'
+
+const { ipcRenderer } = require('electron');
+
+const trySave = (e: KeyboardEvent) => {
+  // const service = store.state.service
+
+  
+  
+	if(e.key == 's' && (navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)){
+    e.preventDefault();
+    
+    if (!workspace.value.oBPCI) {
+      return
+    }
+		workspace.value.saveSrc()
+    
+		return false;
+	}
+}
+
+const rootRef = ref(null as (null | HTMLElement))
+
+onMounted(() => {
+  window.addEventListener('keydown', trySave)
+})
+
+// ipcRenderer.on('workspace-open', () => {
+//   store.dispatch('serviceConnect')
+// })
 </script>
 
 <template>
-  <div class="logo-box">
-    <img class="logo vite" src="./assets/vite.svg" >
-    <img class="logo electron" src="./assets/electron.svg" >
-    <img class="logo vue" src="./assets/vue.svg" >
-  </div>
-  <HelloWorld msg="Hello Vue 3 + TypeScript + Vite" />
-  <div class="static-public">
-    Place static files into the <code>/public</code> folder
-    <img style="width:77px;" :src="'./node.png'" >
+  <div class="root" ref="rootRef">
+    <!-- <GuideMask /> -->
+    <PopupRoot />
+    <!-- <Menubar /> -->
+    <div class="under-menubar">
+      <Sidebar />
+      <div class="right-sidebar">
+        <Editor />
+        <Shell />
+      </div>
+    </div>
   </div>
 </template>
 
-<style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+<style scoped>
+  .root {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-flow: column;
+    overflow: hidden;
+  }
+  .under-menubar {
+    flex-grow: 1;
+    width: 100vw;
+    background: var(--color-bg);
 
-.logo-box {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-}
+    display: flex;
+  }
 
-.static-public {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.static-public code {
-  background-color: #eee;
-  padding: 2px 4px;
-  margin: 0 4px;
-  border-radius: 4px;
-  color: #304455;
-}
-
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: 0.75s;
-}
-
-.logo.vite:hover {
-  filter: drop-shadow(0 0 2em #747bff);
-}
-
-.logo.electron:hover {
-  filter: drop-shadow(0 0 2em #9FEAF9);
-}
-
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #249b73);
-}
+  .right-sidebar  {
+    display: flex;
+    flex-flow: column;
+    flex-grow: 1;
+  }
 </style>

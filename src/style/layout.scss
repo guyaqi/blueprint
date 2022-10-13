@@ -1,0 +1,61 @@
+/* flex */
+
+.row {
+  display: flex;
+}
+
+.col {
+  flex-basis: 0;
+  flex-shrink: 0;
+  flex-grow: 1;
+
+  display: flex;
+  flex-flow: column;
+}
+
+.aic {
+  align-items: center;
+}
+
+.jcc {
+  justify-content: center;
+}
+
+/* margin & padding */
+
+.mr-1 {
+  margin-right: 0.25rem;
+}
+
+.mr-2 {
+  margin-right: 0.5rem;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.p-2 {
+  padding: 0.5rem;
+}
+
+.p-3 {
+  padding: 1rem;
+}
+
+.push-right {
+  margin-left: auto !important;
+}
+
+.center-block {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* list */
+
+.simple-list-item {
+  padding: 0 8px;
+  white-space: nowrap;
+  line-height: 24px;
+}
