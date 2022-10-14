@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 
-import { shell, ComponentInstance } from '../../util/shell/shell'
+import { shell, ComponentInstance } from '../../util/logger'
 import HtmlLine from './HtmlLine.vue';
-import { persons } from '../../util/shell/person-generate'
-import ShellMenu from './ShellMenu.vue';
+import LoggerMenu from './LoggerMenu.vue';
 import { getRandomProverbs } from '../../util/proverbs';
 import TestDisplayer from '../common/TestDisplayer.vue';
 
@@ -77,7 +76,7 @@ onMounted(async () => {
       <!-- <div>{{ r }}</div> -->
     </div>
     <div class="main-wrapper">
-      <ShellMenu />
+      <LoggerMenu />
       <div ref="scrollView" class="scroll-view scroll-appearance">
         <div ref="scrollContent" class="scroll-content">
           <div class="line" v-for="line in lines">

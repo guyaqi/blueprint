@@ -40,6 +40,7 @@
     "@vueuse/core": "^9.3.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
+    "node-fetch": "^3.2.10",
     "normalize.css": "^8.0.1",
     "sass": "^1.55.0",
     "vuex": "^4.0.2"

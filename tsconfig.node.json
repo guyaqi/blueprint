@@ -8,5 +8,5 @@
     "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["package.json", "electron", "common"]
+  "include": ["package.json", "electron"]
 }

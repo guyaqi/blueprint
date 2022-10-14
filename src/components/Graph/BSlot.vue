@@ -5,6 +5,7 @@ import { Point } from '../../util/blueprint/math';
 import { BPSType, BPS, BPSInstance } from '../../util/blueprint/slot';
 import { shell } from '../../util/shell/shell';
 import BSlotIcon from './BSlotIcon.vue';
+import { workspace } from '../../util/workspace'
 
 const { instance, } = defineProps<{ instance: BPSInstance }>()
 
@@ -44,7 +45,7 @@ const click = () => {
 
   // console.log(position)
 
-  store.state.service!.oCtx!.clickSlot(instance)
+  workspace.value.oCtx!.clickSlot(instance)
 }
 
 const root: Ref<null | HTMLElement> = ref(null)

@@ -1,5 +1,5 @@
-import { sequenceName } from "../name-tool";
-import { shell } from "../shell/shell";
+import { sequenceName } from "../naming";
+import { shell } from "../logger";
 import { BPCtx } from "./context";
 import { BPDType } from "./data";
 import { BPN } from "./node";

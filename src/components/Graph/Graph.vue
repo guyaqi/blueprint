@@ -111,7 +111,7 @@ const nodes = computed(() => context.value?.nodes)
     align-items: center;
     justify-content: center;
 
-    background-color: #2e2f32;
+    // background-color: #2e2f32;
     font-size: 24px;
     cursor: not-allowed;
   }

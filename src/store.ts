@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import { BlueprintService } from './util/blueprint/service'
 // import { chooseWorkspace } from './util/workspace'
-import { shell } from './util/shell/shell'
+import { shell } from './util/logger'
 
 // Create a new store instance.
 const store = createStore({

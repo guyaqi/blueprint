@@ -1,6 +1,6 @@
 // 蓝图节点
-import { randomName } from "../name-tool";
-import { shell } from "../shell/shell";
+import { randomName } from "../naming";
+import { shell } from "../logger";
 import { Point } from "./math";
 import { BPS, BPSInstance } from "./slot";
 

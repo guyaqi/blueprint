@@ -9,10 +9,11 @@ import { BPCtx } from "../blueprint/context"
 import { BPN } from "../blueprint/node"
 import { BPC, BPCI } from "../blueprint/struct"
 import { BaseTree, BaseTreeNode } from "../datastructure/tree"
-import { shell } from "../shell/shell"
+import { shell } from "../logger"
 import { useLocalStorage } from '@vueuse/core'
-import { SourceFile } from "./sourceFile"
-import { AnyFile } from "./anyFile"
+import { BpSrcFile } from "../os/file"
+import { BaseFile } from "../os/file"
+import { os } from "../os"
 
 //   if (handle.kind === 'file') {
 //     // run file code
@@ -51,10 +52,6 @@ export class FsTreeNode implements BaseTreeNode {
   }
 }
 
-type FsLoadResult = {
-  path: string
-  buffer: Uint8Array
-}
 
 class Workspace {
   _path = window.localStorage.getItem('workspace-path') ? window.localStorage.getItem('workspace-path') : ''
@@ -100,31 +97,27 @@ class Workspace {
       this.path = tree.path
     })
 
-    ipcRenderer.on("file-load", (e: IpcRendererEvent, d: any) => {
-      const res: FsLoadResult = d
-      this.fileLoadHandler(new AnyFile(res.path, res.buffer))
-    })
+    
   }
 
-  fileLoadHandler(af: AnyFile) {
-    if (af.isInSubDir(this.path, 'src')) {
-      this.srcFileLoadHandler(SourceFile.from(af))
-    }
-    else {
-      console.error(`文件解析器未定义: `, af)
-    }
-  }
+  
 
   /**
    * 
    * 蓝图源文件读写
    * 
    */
-  oSF: SourceFile | null = null
+  oSF: BpSrcFile | null = null
   oBPCI: BPCI | null = null
-  
-  // 服务端返回文件处理
-  srcFileLoadHandler(sf: SourceFile) {
+
+
+  // 渲染端想打开某个文件
+  async openSrc(_path: string) {
+    // const buf = ipcRenderer.send('file-load', _path)
+    const f = await os.read({ path: _path})
+    console.log(f)
+    const sf = BpSrcFile.from(f)
+    console.log(sf)
 
     // already opened
     if (this.oBPCI && this.oBPCI.config.name == sf.name) {
@@ -143,11 +136,6 @@ class Workspace {
     }
   }
 
-  // 渲染端想打开某个文件
-  async openSrc(_path: string) {
-    const buf = ipcRenderer.send('file-load', _path)
-  }
-
   // 渲染端想保存某个文件
   async saveSrc() {
     console.log('=== save bpc');
@@ -162,9 +150,6 @@ class Workspace {
 
     this.oSF.text = s
     this.oSF.save()
-    // const writableStream = await (this._bpcfh as any).createWritable();
-    // await writableStream.write(s);
-    // await writableStream.close();
   }
 
 

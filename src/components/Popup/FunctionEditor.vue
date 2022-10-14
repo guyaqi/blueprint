@@ -6,7 +6,7 @@ import { cloneDeep } from 'lodash'
 import { BPS, BPSType, BPSInstance } from '../../util/blueprint/slot';
 import { popup } from '../../util/popup';
 import { computed } from '@vue/reactivity';
-import { sequenceName } from '../../util/name-tool';
+import { sequenceName } from '../../util/naming';
 import BPDTypeSelect from '../common/BPDTypeSelect.vue';
 
 const { node, } = defineProps<{ node: BPN }>()

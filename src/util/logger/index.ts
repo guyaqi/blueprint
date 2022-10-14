@@ -1,6 +1,6 @@
 // import { Component } from "vue"
 import moment from 'moment'
-import HtmlLine from '../../components/Shell/HtmlLine.vue'
+import HtmlLine from '../../components/Logger/HtmlLine.vue'
 
 const urlMatcher = /(\s|^)[^\s]+:\/\/[^\s]+(\s|$)/
 
@@ -11,7 +11,7 @@ export type ComponentInstance = {
   props: any
 }
 
-export class Shell {
+export class Logger {
   lines = [] as ComponentInstance[]
 
   handlers = [] as logHandler[]
@@ -89,7 +89,7 @@ export class Shell {
     }
 
     if (loopTime >= maxLoop) {
-      console.error('Shell: max loop exceeded in textToHtml')
+      console.error('Logger: max loop exceeded in textToHtml')
       return text
     }
 
@@ -97,4 +97,4 @@ export class Shell {
   }
 }
 
-export const shell = new Shell()
+export const shell = new Logger()

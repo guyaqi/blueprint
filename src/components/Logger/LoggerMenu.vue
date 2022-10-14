@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { chooseWorkspace, hasChild } from '../../util/workspace'
+import { computed, onMounted, ref, watch } from 'vue'
 
-import { shell } from '../../util/shell/shell'
+import { shell } from '../../util/logger'
 import store from '../../store';
 import { BlueprintService } from '../../util/blueprint/service';
+import network from '../../util/network';
 
 
 /**
@@ -47,6 +47,13 @@ const execute = async () => {
   }
   
 }
+
+onMounted(() => {
+  setTimeout(async () => {
+    // const res = await network.value.request('https://baidu.com')
+    // console.log(res)
+  })
+})
 </script>
   
 <template>

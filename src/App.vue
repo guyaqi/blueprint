@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
-import Shell from './components/Shell/Shell.vue';
+import Logger from './components/Logger/Logger.vue';
 import Sidebar from './components/Sidebar/Sidebar.vue';
 import Editor from './components/Editor/Editor.vue';
 import Menubar from './components/Menubar.vue';
@@ -10,6 +10,7 @@ import PopupRoot from './components/Popup/PopupRoot.vue';
 import store from './store';
 import { onMounted, ref } from 'vue';
 import { workspace } from './util/workspace'
+import Statusbar from './components/Status/Statusbar.vue';
 
 const { ipcRenderer } = require('electron');
 
@@ -50,9 +51,10 @@ onMounted(() => {
       <Sidebar />
       <div class="right-sidebar">
         <Editor />
-        <Shell />
+        <Logger />
       </div>
     </div>
+    <Statusbar />
   </div>
 </template>
 

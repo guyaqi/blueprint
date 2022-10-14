@@ -1,7 +1,7 @@
 // 蓝图节点的插槽
 
-import { randomName } from "../name-tool"
-import { shell } from "../shell/shell"
+import { randomName } from "../naming"
+import { shell } from "../logger"
 import { BPDType } from "./data"
 import { Point } from "./math"
 

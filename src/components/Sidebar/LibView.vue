@@ -15,8 +15,8 @@ import TreeItem from '../common/TreeItem.vue'
 //   , 'EASTL' ]
 // const workspaceHandler = ref(null as (null | FileSystemDirectoryHandle))
 
-const siteTree = ref(null as (null | BaseTree))
-const builtinTree = ref(null as (null | BaseTree))
+// const siteTree = ref(null as (null | BaseTree))
+// const builtinTree = ref(null as (null | BaseTree))
 
 const tabIndex = ref(0)
 
@@ -26,8 +26,8 @@ watch(computed(() => store.state.service), async (value) => {
   }
   try {
     
-    siteTree.value = BaseTree.parse({ name: 'site packages', children: value.rootSymbolList!.pkglist['site'] }, x => x.name, x => x.children)
-    builtinTree.value = BaseTree.parse({ name: 'builtin packages', children: value.rootSymbolList!.pkglist['builtin'] }, x => x.name, x => x.children)
+    // siteTree.value = BaseTree.parse({ name: 'site packages', children: value.rootSymbolList!.pkglist['site'] }, x => x.name, x => x.children)
+    // builtinTree.value = BaseTree.parse({ name: 'builtin packages', children: value.rootSymbolList!.pkglist['builtin'] }, x => x.name, x => x.children)
     // console.log(siteTree);
     // console.log(builtinTree);
     // console.log(builtinTree.value!.tree())
@@ -40,7 +40,7 @@ watch(computed(() => store.state.service), async (value) => {
 })
 
 const printHierarchy = () => {
-  console.log(builtinTree.value!.tree())
+  // console.log(builtinTree.value!.tree())
 }
 
 </script>
@@ -53,19 +53,17 @@ const printHierarchy = () => {
       <div class="head-tab" @click="tabIndex=1" :class="{'head-tab-active': tabIndex == 1}">built-in</div>
     </div>
     <div class="lib-list scroll-appearance">
-      <div class="lib-list-content" v-if="siteTree" v-show="tabIndex == 0">
+      <!-- <div class="lib-list-content" v-if="siteTree" v-show="tabIndex == 0">
         <TreeItem v-for="item in siteTree.children" :tree="new BaseTree(item)" />
         <div v-for="item in []" class="simple-list-item">{{ item }}</div>
-      </div>
-      <div class="lib-list-content" v-if="builtinTree" v-show="tabIndex == 1">
+      </div> -->
+      <!-- <div class="lib-list-content" v-if="builtinTree" v-show="tabIndex == 1">
         <div class="p-2">共载入{{builtinTree.children ? builtinTree.children.length : 0}}个包，超出显示限制(60)。出于性能考量，改用字符方式显示</div>
         <div class="p-2 text-tree">{{ builtinTree.tree() }}</div>
-        <!-- <TreeItem v-for="item in builtinTree.children" :tree="new BaseTree(item)" />
-        <div v-for="item in []" class="simple-list-item">{{ item }}</div> -->
-      </div>
-      <div class="lib-list-content" v-if="!siteTree">
+      </div> -->
+      <!-- <div class="lib-list-content" v-if="!siteTree">
         <div class="p-2">工作区未载入</div>
-      </div>
+      </div> -->
     </div>
   </div>
   

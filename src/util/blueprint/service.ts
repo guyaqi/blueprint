@@ -1,4 +1,4 @@
-import { shell } from '../shell/shell'
+import { shell } from '../logger'
 // import { hasChild } from '../workspace'
 import { BPCtx } from './context'
 import { FlatSymbol, FlatSymbolType, RootSymbol, SymbolNode } from './python-import'
@@ -31,47 +31,6 @@ export class BlueprintService {
   wsHdl: FileSystemDirectoryHandle
   rootHdl: FileSystemFileHandle
   cacheHdl: FileSystemDirectoryHandle
-
-  async _resolveChildFileNode(dirHdl: FileSystemDirectoryHandle): Promise<FileTreeNode[]> {
-    const res = []
-    for await (const [name, hdl] of (dirHdl as any).entries()) {
-
-      // folder
-      if (hdl instanceof FileSystemDirectoryHandle && (name as string).endsWith(BlueprintService.POSTFIX_DIR)) {
-        const nodeName = (name as string).slice(0, name.length - BlueprintService.POSTFIX_DIR.length)
-        res.push(new FileTreeNode(nodeName, true, hdl, await this._resolveChildFileNode(hdl as FileSystemDirectoryHandle)))
-      }
-
-      // file
-      else if (hdl instanceof FileSystemFileHandle && (name as string).endsWith(BlueprintService.POSTFIX_FILE)) {
-        const nodeName = (name as string).slice(0, name.length - BlueprintService.POSTFIX_FILE.length)
-        res.push(new FileTreeNode(nodeName, false, hdl))
-      }
-
-      // error
-      else {
-        console.log([name, hdl]);
-        throw new Error('unknow entries item kind')
-      }
-    }
-
-    return res
-  }
-
-  async getBpFileTree(): Promise<BaseTree<FileTreeNode> | null> {
-    let srcHdl: FileSystemDirectoryHandle
-    try {
-      srcHdl = await this.wsHdl.getDirectoryHandle('src')
-    }
-    catch {
-      shell.error('获取源代码失败', 'getBpFileTree')
-      return null
-    }
-    
-    const srcTN = new FileTreeNode('src', true, srcHdl, await this._resolveChildFileNode(srcHdl))
-
-    return new BaseTree(srcTN)
-  }
 
   /**
    * 

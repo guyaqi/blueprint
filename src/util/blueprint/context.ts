@@ -1,4 +1,4 @@
-import { shell } from "../shell/shell"
+import { shell } from "../logger"
 import { makeSEPair } from "../built-in/node"
 import { BPLInstance, BPLType } from "./link"
 import { BPN, BPNInstance, BPNType } from "./node"

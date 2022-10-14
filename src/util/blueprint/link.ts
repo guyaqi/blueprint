@@ -1,4 +1,4 @@
-import { shell } from "../shell/shell";
+import { shell } from "../logger";
 import { Point } from "./math";
 import { BPSInstance } from "./slot";
 

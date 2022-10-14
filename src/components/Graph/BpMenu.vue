@@ -7,6 +7,7 @@ import { Point } from '../../util/blueprint/math';
 import { BPNInstance } from '../../util/blueprint/node';
 import { flatSymbolToBPN } from '../../util/blueprint/python-import';
 import { FlatSymbol, FlatSymbolType } from '../../util/blueprint/python-import'
+import { workspace } from '../../util/workspace'
 
 const emit = defineEmits<{
   (event: 'close'): void
@@ -73,7 +74,7 @@ const cBpI = (symbol: FlatSymbol) => {
   const node = new BPNInstance(flatSymbolToBPN(symbol))
   node.position = genPos
 
-  service.value!.oCtx!.nodes.push(node)
+  workspace.value.oCtx!.nodes.push(node)
 
   emit('close')
 }
