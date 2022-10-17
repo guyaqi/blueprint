@@ -1,54 +1,62 @@
 import { ref } from "vue"
 import { os } from "../os"
-const { shell } = require('electron')
 
-class Python {
+import { pythonAst } from './ast'
+import { pythonExecLocal } from "./execLocal"
+import { SymbolRoot } from "./symbolRoot"
 
-  readonly PythonExecName: string = 'python.exe'
+
+class PythonBridge {
+
   pythonFullpath: string = ''
 
+  symbolRoot?: SymbolRoot
+
   
-  private async findPythonExecutable(): Promise<string> {
-    const pythonIsInDir = async (path: string): Promise<boolean> => {
-      const children = await os.ls(path)
-      return children.findIndex(x => x == this.PythonExecName) >= 0
-    }
 
-    let pathList = process.env.PATH!.split(';')
-    pathList = Array.from(new Set(pathList))
-    for (const item of pathList) {
-      if (await pythonIsInDir(item)) {
-        return os.path.join(item, this.PythonExecName)
-      }
-    }
-    return ''
-  }
-
-  // readonly exec = (scriptPath: string) => {
-  //   const command = `${this.pythonFullpath} ${scriptPath}`
-  //   console.log(command)
-  //   await shell.openPath(command)
-  // }
-
-  // readonly exec = os.gChnlFunc<{ scriptPath: string }, { stdout: string }>(
-  //   'python-exec',
-  //   (x => ({scriptPath: `${this.pythonFullpath} ${x.scriptPath}`}))
-  // )
-  async exec(scriptPath: string): Promise<string> {
-    await this.init()
-    const { stdout, } = await os.exec({cmd: `${this.pythonFullpath} ${scriptPath}`})
-    return stdout
-  }
 
   _inited: boolean = false
+  _initing: boolean = false
   async init() {
+
+    // prevents being called more than once
     if (this._inited) {
       return
     }
+    if (this._initing) {
+      return await new Promise<void>((res, rej) => {
+        const i = setInterval(() => {
+          const r = this._inited
+          if (r) {
+            window.clearInterval(i)
+            res()
+          }
+        }, 50)
+      })
+    }
+    this._initing = true
+
+    this.pythonFullpath = await pythonExecLocal.getExecutablePath()
+    if (!this.pythonFullpath) {
+      throw new Error('get local python path failed')
+    }
+    else {
+      console.log(`Use local python: ${this.pythonFullpath}`)
+    }
+
+
+    // try resolve all stdlib and cache
+    this.symbolRoot = new SymbolRoot()
+    await this.symbolRoot.resolveAll()
+
+    // init finish
     this._inited = true
-    this.pythonFullpath = await this.findPythonExecutable()
+  }
+
+  async test() {
+    await this.init()    
   }
 }
 
-export const python = ref(new Python())
-export default python
+export const pyBridge = ref(new PythonBridge())
+export default pyBridge

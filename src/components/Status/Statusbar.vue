@@ -30,7 +30,8 @@ const getColor = (status: StatusEnum) => {
   return colorMap.get(status)
 }
 
-const a = 'https://www.electronjs.org/zh/docs/latest/api/app'
+// const a = 'https://www.electronjs.org/zh/docs/latest/api/app'
+const a = 'https://docs.python.org/3/library/ast.html'
 
 
 
