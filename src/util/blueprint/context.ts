@@ -1,7 +1,7 @@
 import { shell } from "../logger"
 import { BPLInstance, BPLType } from "./link"
 import { BPN, BPNInstance, BPNType } from "./node"
-import { BPSInstance } from "./slot"
+import { BPSInstance, BPSType } from "./slot"
 import { flatten } from 'lodash'
 
 export class BPCtx {
@@ -101,7 +101,18 @@ export class BPCtx {
     ctx._links = o._links.map((x: any) => BPLInstance.fromObj(x))
 
     // remaping: 重新将links中使用的slot改换回nodes中的，否则移动node将不会自动移动link
-    const allslot = flatten(ctx.nodes.map(n => n.slots))
+    let allslot: BPSInstance[] = []
+    // const allslot = flatten(ctx.nodes.map(n => n.slots))
+    for(const node of ctx.nodes) {
+      for (const slot of node.slots) {
+        allslot.push(slot)
+        if (slot.config.type == BPSType.AUTO_LIST) {
+          for (const subslot of slot.sub) {
+            allslot.push(subslot)
+          }
+        }
+      }
+    }
 
     for (const link of ctx._links) {
       for (const slot of allslot) {

@@ -9,7 +9,8 @@ const config = instance.config
 
 const isProcessOrData = (
   config.type == BPSType.PROCESS ||
-  config.type == BPSType.DATA
+  config.type == BPSType.DATA ||
+  config.type == BPSType.LITERIAL
 )
 const isAutoList = config.type == BPSType.AUTO_LIST
 

@@ -2,102 +2,94 @@ import { pythonAst } from "../python/ast"
 import { BPN, BPNType } from "./node"
 import { BPS, BPSType } from "./slot"
 
-export namespace symbol {
-  
-  export enum FlatSymbolType {
-    BP_CONSTANT,
-    BP_FUNCTION,
-    BP_CLASS,
+export enum BPSymbolType {
+  BP_CONSTANT,
+  BP_FUNCTION,
+  BP_CLASS,
 
-    PY_CONSTANT,
-    PY_FUNCTION,
-    PY_CLASS
-  }
+  BP_BUILTIN,
+  BP_GETTER,
+  BP_PURE,
 
-  export type FlatSymbol = {
+  PY_CONSTANT,
+  PY_FUNCTION,
+  PY_CLASS
+}
+
+export class BPSymbol {
+  name: string
+  from: string
+  type: BPSymbolType
+  desc: string  // description
+
+  // for search
+  alias?: string[]
+
+  // python only
+  pyAst?: pythonAst.Node
+
+  constructor(
     name: string,
     from: string,
-    type: FlatSymbolType,
-    desc: string  // description
-
-    // python only
+    type: BPSymbolType,
+    desc: string,
     pyAst?: pythonAst.Node
-
-    // old, unused
-    // varType?: string,
-    // functionSignature?: FunctionSignature[]
+  ) {
+    this.name = name
+    this.from = from
+    this.type = type
+    this.desc = desc
+    this.pyAst = pyAst
   }
 
-  export const search = (kw: string, src: FlatSymbol[]): FlatSymbol[] => {
-    if (kw === '') {
-      return src
-    }
-
-    let match: FlatSymbol[]
-    if (kw.indexOf('.')>=0) {
-      const arr = kw.split('.')
-      const srFrom = arr[0]
-      const srName = arr[1]
-      match = src.filter(x => {
-        return x.name.startsWith(srName) && x.from.includes(srFrom)
-      })
+  get nameList(): string[] {
+    if (!this.alias) {
+      return [ this.name ]
     }
     else {
-      match = src.filter(x => x.name.startsWith(kw))
+      return [ this.name, ...this.alias ]
     }
-    
-    match.sort((a, b) => {
-      return a.name.localeCompare(b.name)
-    })
-    return match
   }
 
-  export const isConst = (s: FlatSymbol): boolean => {
-    return s.type == FlatSymbolType.BP_CONSTANT || s.type == FlatSymbolType.PY_CONSTANT
+  isConst(): boolean {
+    return this.type == BPSymbolType.BP_CONSTANT || this.type == BPSymbolType.PY_CONSTANT
   }
 
-  export const isFunction = (s: FlatSymbol): boolean => {
-    return s.type == FlatSymbolType.BP_FUNCTION || s.type == FlatSymbolType.PY_FUNCTION
+  isFunction(): boolean {
+    return this.type == BPSymbolType.BP_FUNCTION || this.type == BPSymbolType.PY_FUNCTION
   }
 
-  export const isClass = (s: FlatSymbol): boolean => {
-    return s.type == FlatSymbolType.BP_CLASS || s.type == FlatSymbolType.PY_CLASS
+  isClass(): boolean {
+    return this.type == BPSymbolType.BP_CLASS || this.type == BPSymbolType.PY_CLASS
   }
 
-  export const isBuiltin = (s: FlatSymbol): boolean => {
+  isBuiltin(): boolean {
     return (
-      s.type == FlatSymbolType.BP_CLASS ||
-      s.type == FlatSymbolType.BP_FUNCTION ||
-      s.type == FlatSymbolType.BP_CONSTANT
+      this.type == BPSymbolType.BP_CLASS ||
+      this.type == BPSymbolType.BP_FUNCTION ||
+      this.type == BPSymbolType.BP_CONSTANT ||
+      this.type == BPSymbolType.BP_BUILTIN ||
+      this.type == BPSymbolType.BP_GETTER ||
+      this.type == BPSymbolType.BP_PURE
     )
   }
 
-  export const isPython = (s: FlatSymbol): boolean => {
+  isPython(): boolean {
     return (
-      s.type == FlatSymbolType.PY_CLASS ||
-      s.type == FlatSymbolType.PY_FUNCTION ||
-      s.type == FlatSymbolType.PY_CONSTANT
+      this.type == BPSymbolType.PY_CLASS ||
+      this.type == BPSymbolType.PY_FUNCTION ||
+      this.type == BPSymbolType.PY_CONSTANT
     )
   }
 
   
-  export function toBPN(s: symbol.FlatSymbol): BPN {
-    let name: string = s.name
+  toBPN(): BPN {
+    let name: string = this.name
     let type: BPNType
     let slots: BPS[] = []
-    let remark: string = s.from
+    let remark: string = this.from
 
-    // if (symbol.isFunction(s)) {
-    //   type = BPNType.FUNCTION
-    //   slots.push(new BPS(BPSType.PROCESS, '', false))
-    //   slots.push(new BPS(BPSType.PROCESS, '', true))
-    //   // const params = symbol.functionSignature!.map(item => {
-    //   //   return new BPS(BPSType.DATA, item.param, item.param == 'return')
-    //   // })
-    //   // slots = slots.concat(params)
-    //   remark = s.from
-    // }
-    if (s.type == symbol.FlatSymbolType.PY_FUNCTION) {
+    if (this.type == BPSymbolType.PY_FUNCTION) {
       type = BPNType.FUNCTION
 
       // process in & out
@@ -105,7 +97,7 @@ export namespace symbol {
       slots.push(new BPS(BPSType.PROCESS, '', true))
 
       // python part
-      const ast = s.pyAst! as pythonAst.FunctionDef
+      const ast = this.pyAst! as pythonAst.FunctionDef
 
       // normal args
       for (const arg of ast.args.args) {
@@ -136,4 +128,87 @@ export namespace symbol {
 
     return node
   }
+
+  static search(kw: string, src: BPSymbol[]): BPSymbol[] {
+
+    // no kw no search
+    if (kw === '') {
+      return []
+    }
+
+    const joint = /[\.|\>]/
+    const jointG = /[\.|\>]/g
+  
+    let match: BPSymbol[]
+    if (kw.match(joint)) {
+      const kwArr = kw.split(joint)
+
+      const pAFrom = kwArr
+      // plan A do not search name
+
+      const pBFrom = kwArr.slice(0, kwArr.length - 1)
+      const pBName = kwArr[kwArr.length - 1]
+
+      match = src.filter(x => {
+        let names: string[] //  = [x.name]
+        if(x.alias) {
+          names = [ x.name, ...x.alias ]
+        }
+        else {
+          names = [ x.name ]
+        }
+        const from = x.from.split(joint)
+
+        // plan A: pkg path only
+        if (pAFrom.length <= from.length) {
+          let flag = true
+          for(let i=0; i<pAFrom.length; i++) {
+            if (!from[i].includes(pAFrom[i])) {
+              flag = false
+              break
+            }
+          }
+          if (flag) {
+            return true
+          }
+        }
+
+        // plan B: pkg path and name
+        if (pBFrom.length <= from.length  && names.some(name => name.includes(pBName))) {
+          let flag = true
+          for(let i=0; i<pBFrom.length; i++) {
+            if (!from[i].includes(pBFrom[i])) {
+              flag = false
+              break
+            }
+          }
+          if (flag) {
+            return true
+          }
+        }
+
+        // const matchName = x.name.startsWith(srName)
+        // const fromArr = x.from.split(joint)
+        
+        // let matchFrom = fromArr.length >= srFromArr.length // = .includes(srFrom)
+        // for (let i=0; i<srFromArr.length; i++) {
+        //   if (!fromArr[i].includes(srFromArr[i])) {
+        //     matchFrom = false
+        //     break;
+        //   }
+        // }
+        
+        // return matchName && matchFrom
+      })
+    }
+    else {
+      match = src.filter(x => x.nameList.some(name => `${x.from.replaceAll(jointG, '')}${name}`.includes(kw)))
+    }
+    
+    match.sort((a, b) => {
+      return a.name.localeCompare(b.name)
+    })
+    return match
+  }
 }
+

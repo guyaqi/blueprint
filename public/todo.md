@@ -1,7 +1,11 @@
 # Todo
 
-1. python 功能
-   1. 导入剩余builtin
-   2. 寻找一份stub，并且处理pyi文件，为builtin添加类型支持
-2. 蓝图功能
-   1. 添加更多逻辑相关、内置类型节点
+1. editor
+   1. search result priority
+   2. file manager fully implement
+   3. simple file edit
+   4. curve prettify
+2. python
+   1. load site-packages
+   2. astbuild
+   3. compile & run

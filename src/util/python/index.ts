@@ -1,5 +1,5 @@
 import { ref } from "vue"
-import { symbol } from "../blueprint/symbol"
+import { BPSymbol, BPSymbolType } from "../blueprint/symbol"
 import { os } from "../os"
 
 import { pythonAst } from './ast'
@@ -51,11 +51,11 @@ class PythonBridge {
     this._inited = true
   }
 
-  getFlats(): symbol.FlatSymbol[] {
+  getFlats(): BPSymbol[] {
     if (!this._inited) {
       throw new Error('accessed getFlats before init!')
     }
-    const res = [] as symbol.FlatSymbol[]
+    const res = [] as BPSymbol[]
     for (const exports of this.symbolRoot!.exports) {
       const pkgname = exports[0]
       const pkg = exports[1]
@@ -64,33 +64,33 @@ class PythonBridge {
         if (item.ast.args.posonlyargs.length > 0) {
           console.log(item)
         }
-        res.push({
-          name: item.name,
-          from: pkgname,
-          type: symbol.FlatSymbolType.PY_FUNCTION,
-          pyAst: item.ast,
-          desc: this.descFromFunction(item.ast),
-        })
+        res.push(new BPSymbol(
+          item.name,
+          pkgname,
+          BPSymbolType.PY_FUNCTION,
+          this.descFromFunction(item.ast),
+          item.ast,
+        ))
       }
 
       for(const item of pkg.classes) {
-        res.push({
-          name: item.name,
-          from: pkgname,
-          type: symbol.FlatSymbolType.PY_CLASS,
-          pyAst: item.ast,
-          desc: this.descFromClass(item.ast),
-        })
+        res.push(new BPSymbol(
+          item.name,
+          pkgname,
+          BPSymbolType.PY_CLASS,
+          this.descFromClass(item.ast),
+          item.ast,
+        ))
       }
 
       for(const item of pkg.vars) {
-        res.push({
-          name: item.name,
-          from: pkgname,
-          type: symbol.FlatSymbolType.PY_CONSTANT,
-          pyAst: item.ast,
-          desc: this.descFromConst(item.ast),
-        })
+        res.push(new BPSymbol(
+          item.name,
+          pkgname,
+          BPSymbolType.PY_CONSTANT,
+          this.descFromConst(item.ast),
+          item.ast,
+        ))
       }
     }
 

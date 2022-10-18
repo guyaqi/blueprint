@@ -54,6 +54,9 @@ export class BPSInstance {
   // when config.type == BPSType.AUTO_LIST
   sub: BPSInstance[] = []
 
+  // when config.type == BPSType.LITERIAL
+  literial?: number | string
+
   constructor(config: BPS) {
     this.config = config
   }
@@ -74,6 +77,8 @@ export class BPSInstance {
     const i = new BPSInstance(BPS.fromObj(o.config))
     i.position = o.position
     i.id = o.id
+    i.sub = o.sub
+    i.literial = o.literial
     return i
   }
 }

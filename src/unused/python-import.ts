@@ -1,6 +1,6 @@
-import { symbol } from "./symbol";
-import { BPN, BPNType } from "./node";
-import { BPS, BPSType } from "./slot";
+import { symbol } from "../util/blueprint/symbol";
+import { BPN, BPNType } from "../util/blueprint/node";
+import { BPS, BPSType } from "../util/blueprint/slot";
 
 /**
  * 

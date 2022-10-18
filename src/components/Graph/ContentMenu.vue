@@ -1,58 +1,65 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity';
 import { onMounted, ref, watch } from 'vue'
-import store from '../../store';
-// import { context } from '../../util/blueprint/context';
 import { Point } from '../../util/blueprint/math';
 import { BPNInstance } from '../../util/blueprint/node';
-import { symbol } from '../../util/blueprint/symbol'
+import { BPSymbol } from '../../util/blueprint/symbol'
 import { workspace } from '../../util/workspace'
 import { pyBridge } from '../../util/python'
+import { builtins } from '../../util/blueprint/builtins';
+
+/**
+ * Layout
+ */
 
 const emit = defineEmits<{
   (event: 'close'): void
 }>()
 
-
-const flatSymbols = ref([] as symbol.FlatSymbol[])
-
 const rootRef = ref(null as (null | HTMLElement))
 
-// watch(computed(() => pyBridge.value._inited), value => {
-//   if(!value) {
-//     return
-//   }
-//   flatSymbols.value = value.getFlatSymbolList()
-// })
+/**
+ * Symbols
+ */
 
+const symbols = ref([] as BPSymbol[])
 onMounted(() => {
+
+  // builtin import
+  builtins.forEach(item => symbols.value.push(item))
+
+  // console.log(builtins[0].isBuiltin())
+
+  // python symbol import
   pyBridge.value.init().then(() => {
-    flatSymbols.value = pyBridge.value.getFlats()
+    pyBridge.value.getFlats().forEach(item => symbols.value.push(item))
   })
 })
 
 /**
  * 
- * 搜索相关
+ * Search
  * 
  */
+
 const SEARCH_DISPLAY_LIMIT = 1000
 // const searchText = ref('req.get')
 // const searchText = ref('print')
-const searchText = ref('join')
+const searchText = ref('urllib')
 const forceShowAll = ref(false)
 const searchResult = computed(() => {
   if (searchText.value === '') {
     return []
   }
   forceShowAll.value = false
-  return symbol.search(searchText.value, flatSymbols.value)
+  return BPSymbol.search(searchText.value, symbols.value)
 })
-const srClass = computed(() => searchResult.value.filter(x => symbol.isClass(x)))
-const srFunction = computed(() => searchResult.value.filter(x => symbol.isFunction(x)))
-const srVar = computed(() => searchResult.value.filter(x => symbol.isConst(x)))
+const srBuiltin = computed(() => searchResult.value.filter(x => x.isBuiltin()))
+const srClass = computed(() => searchResult.value.filter(x => x.isClass()))
+const srFunction = computed(() => searchResult.value.filter(x => x.isFunction()))
+const srVar = computed(() => searchResult.value.filter(x => x.isConst()))
 
-const instantiate = (s: symbol.FlatSymbol) => {
+const instantiate = (s: BPSymbol) => {
   if (!rootRef.value) {
     return
   }
@@ -62,12 +69,21 @@ const instantiate = (s: symbol.FlatSymbol) => {
     x: rootRef.value.offsetLeft,
   }
 
-  const node = new BPNInstance(symbol.toBPN(s))
+  const node = new BPNInstance(s.toBPN())
   node.position = genPos
 
   workspace.value.oCtx!.nodes.push(node)
 
   emit('close')
+}
+
+const displayFrom = (s: string): string => {
+  const joint = ' > '
+  let res = s.split('.').join(joint)
+  if (res) {
+    res += joint
+  }
+  return res
 }
 </script>
   
@@ -84,10 +100,17 @@ const instantiate = (s: symbol.FlatSymbol) => {
         共{{searchResult.length}}条结果, <span class="text-link" @click="forceShowAll=true">展开显示</span>
       </div>
       <div v-if="searchResult.length < SEARCH_DISPLAY_LIMIT || forceShowAll" class="search-option-list">
+        <div v-if="srBuiltin.length">
+          <div v-for="item in srBuiltin" class="simple-list-item click hover-hl" @click="instantiate(item)">
+            <span class="name-package">{{ displayFrom(item.from) }}</span>
+            <span class="name-class">{{ item.name }}&nbsp;</span>
+            <span>{{ item.desc }}</span>
+          </div>
+        </div>
         <div v-if="srClass.length">
           <div class="title name-class">> 类</div>
           <div v-for="item in srClass" class="simple-list-item click hover-hl" @click="instantiate(item)">
-            <span class="name-package">{{item.from}}&nbsp;</span>
+            <span class="name-package">{{ displayFrom(item.from) }}</span>
             <span class="name-class">{{ item.name }}&nbsp;</span>
             <span>{{ item.desc }}</span>
           </div>
@@ -95,7 +118,7 @@ const instantiate = (s: symbol.FlatSymbol) => {
         <div v-if="srFunction.length">
           <div class="title name-function">> 函数</div>
           <div v-for="item in srFunction" class="simple-list-item click hover-hl" @click="instantiate(item)">
-            <span class="name-package">{{item.from}}&nbsp;</span>
+            <span class="name-package">{{ displayFrom(item.from) }}</span>
             <span class="name-function">{{ item.name }}&nbsp;</span>
             <span>{{ item.desc }}</span>
             <!-- <span>(</span>
@@ -110,7 +133,7 @@ const instantiate = (s: symbol.FlatSymbol) => {
         <div v-if="srVar.length">
           <div class="title name-constant">> 常量引用</div>
           <div v-for="item in srVar" class="simple-list-item click hover-hl" @click="instantiate(item)">
-            <span class="name-package">{{item.from}}&nbsp;</span>
+            <span class="name-package">{{ displayFrom(item.from) }}</span>
             <span class="name-constant">{{ item.name }}&nbsp;</span>
             <span>{{ item.desc }}</span>
             <!-- <span class="name-class">:&nbsp;{{ item.varType }}</span> -->

@@ -9,7 +9,8 @@ import { BPS, BPSInstance, BPSType } from "./slot";
 export enum BPNType {
   IMPORTANT_PROCESS,
   GETTER,
-  FUNCTION
+  FUNCTION,
+  BUILTIN,
 }
 
 // config

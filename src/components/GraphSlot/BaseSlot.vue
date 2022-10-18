@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { onMounted, Ref, ref } from 'vue'
+import { onMounted, Ref, ref, watch } from 'vue'
 import store from '../../store';
 import { Point } from '../../util/blueprint/math';
 import { BPSType, BPS, BPSInstance } from '../../util/blueprint/slot';
 import BSlotIcon from '../Graph/BSlotIcon.vue';
 import { workspace } from '../../util/workspace'
+import { computed } from '@vue/reactivity';
 
 const { instance, } = defineProps<{ instance: BPSInstance }>()
 
@@ -12,12 +13,15 @@ const config = instance.config
 
 const isProcess = config.type == BPSType.PROCESS
 const isData = config.type == BPSType.DATA
-// const isLiterial = config.type == BPSType.LITERIAL
+const isLiterial = config.type == BPSType.LITERIAL
 
 const iconRef = ref(null as (null | HTMLElement))
 
 
 const click = () => {
+  if (isLiterial) {
+    return
+  }
   workspace.value.oCtx!.clickSlot(instance)
 }
 
@@ -28,6 +32,9 @@ const NODE_CLASSNAME = 'bp-node'
 
 // (mutationsList: any, observer: any)
 const mountedNodeMove = () => {
+  if (isLiterial) {
+    return
+  }
   let iconRect = iconRef.value!.getBoundingClientRect()
   const canvasRect = canvasEl!.getBoundingClientRect()
 
@@ -61,19 +68,44 @@ onMounted(() => {
   observer.observe(parent as Node, { attributes: true, childList: true, subtree: true });
 
   mountedNodeMove()
+
+  if (isLiterial && instance.literial === undefined) {
+    instance.literial = ''
+  }
 })
+
+// const literialInput = ref(instance.literial) // instance.literial
+// watch(literialInput, (val) => {
+//   if (!val) {
+//     return
+//   }
+//   console.log('merge')
+//   instance.literial = val
+// })
+// setTimeout(() => {
+//   if (isLiterial) {
+//     console.log(instance)
+//     console.log(instance.id)
+//     console.log(instance.literial)
+//     // literialInput.value = instance.literial
+//   }
+// }, 1000)
 </script>
   
 <template>
   <div ref="root" class="bslot-root" @mousedown.stop @click.stop="click">
-    <!-- <div v-if="isLiterial" class="bslot">
+    <div v-if="isLiterial" class="bslot">
       <div v-if="config.name">{{ config.name }}</div>
-      <input class="slot-input" src="" alt="">
-    </div> -->
-    <div class="bslot" ref="iconRef">
-      <BSlotIcon v-if="!config.isOut" :slot-type="config.type" :connect="true" />
+      <input class="slot-input" src="" alt="" v-model="instance.literial">
+    </div>
+    <div v-else class="bslot">
+      <div v-if="!config.isOut" ref="iconRef">
+        <BSlotIcon :slot-type="config.type" :connect="true" />
+      </div>
       <div v-if="config.name">{{ config.name }}</div>
-      <BSlotIcon v-if="config.isOut" :slot-type="config.type" :connect="true" />
+      <div ref="iconRef" v-if="config.isOut">
+        <BSlotIcon :slot-type="config.type" :connect="true" />
+      </div>
     </div>
   </div>
 </template>
