@@ -2,7 +2,7 @@
 import { randomName } from "../naming";
 import { shell } from "../logger";
 import { Point } from "./math";
-import { BPS, BPSInstance } from "./slot";
+import { BPS, BPSInstance, BPSType } from "./slot";
 
 // Node
 
@@ -19,11 +19,13 @@ export class BPN {
   name: string
   remark?: string
   slots: BPS[]
+  options?: BPS[]
 
-  constructor(type: BPNType, name: string, slots: BPS[]) {
+  constructor(type: BPNType, name: string, slots: BPS[], options?: BPS[]) {
     this.type = type
     this.name = name
     this.slots = slots
+    this.options = options
   }
 
   static fromObj(o: any): BPN {
@@ -33,6 +35,18 @@ export class BPN {
     const n = new BPN(o.type, o.name, o.slots.map((x: any) => BPS.fromObj(x)))
     n.remark = o.remark
     return n
+  }
+
+  static makeSEPair(nodeOfFunc: BPN){
+    const start = new BPN(BPNType.IMPORTANT_PROCESS, 'Start', [
+      new BPS(BPSType.PROCESS, '', true),
+      ...nodeOfFunc.slots.filter(s => s.type == BPSType.DATA && !s.isOut).map(x => new BPS(BPSType.DATA, x.name, true))
+    ])
+    const end = new BPN(BPNType.IMPORTANT_PROCESS, 'End', [
+      new BPS(BPSType.PROCESS, '', false),
+      ...nodeOfFunc.slots.filter(s => s.type == BPSType.DATA && s.isOut).map(x => new BPS(BPSType.DATA, x.name, false))
+    ])
+    return { start, end }
   }
 }
 

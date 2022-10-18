@@ -4,7 +4,52 @@ import { pythonAst } from './ast'
 import { os } from "../os"
 import { pythonExecLocal } from "./execLocal"
 
-type ExternPythonCall = (param: string) => Promise<string>
+type PyFunctionExport = {
+  name: string
+  ast: pythonAst.FunctionDef
+}
+
+type PyClassExport = {
+  name: string
+  ast: pythonAst.ClassDef
+}
+
+type PyVarExport = {
+  name: string
+  ast: pythonAst.AnnAssign | pythonAst.Assign
+}
+
+type PyReexport = {
+  name: string
+  ast: pythonAst.Import|pythonAst.ImportFrom
+}
+
+export class PyExports {
+  funcs: PyFunctionExport[]
+  classes: PyClassExport[]
+  vars: PyVarExport[]
+  reimports: PyReexport[]
+
+  constructor(
+    funcs: PyFunctionExport[],
+    classes: PyClassExport[],
+    vars: PyVarExport[],
+    reimports: PyReexport[],
+  ) {
+    this.funcs = funcs
+    this.classes = classes
+    this.vars = vars
+    this.reimports = reimports
+  }
+
+  allNames(): string[] {
+    const a = this.funcs.map(x => x.name)
+    const b = this.classes.map(x => x.name)
+    const c = this.vars.map(x => x.name)
+    const d = this.reimports.map(x => x.name)
+    return a.concat(b).concat(c).concat(c)
+  }
+}
 
 export class SymbolRoot {
 
@@ -16,28 +61,175 @@ export class SymbolRoot {
   asts = new Map<string, pythonAst.Module>()
 
   priorities = new Map<string, number>()
-  exports = new Map<string, pythonResolver.inner.PyExports>()
+  exports = new Map<string, PyExports>()
 
   
   private get _stdTypeShedPath() {
     return os.path.join(process.env.PUBLIC!, 'python', 'typeshed', 'stdlib')
   }
 
-  resolveModule(modName: string, moduleAst: pythonAst.Module): pythonResolver.inner.PyExports {
+  _getExports(m: pythonAst.Module): PyExports {
+    const rootNames = pythonAst.exportChecker.getRootNames(m)
+    // console.log('All root symbols: ', rootNames)
 
-    // check cache
-    const cacheKey = `py-mod-resolve-${modName}`
-    const cache = window.localStorage.getItem(cacheKey)
-    if (cache !== null) {
-      return JSON.parse(cache)
+    const funcs = [] as { name: string, ast: pythonAst.FunctionDef }[]
+    const classes = [] as { name: string, ast: pythonAst.ClassDef }[]
+    const vars = [] as { name: string, ast: (pythonAst.AnnAssign|pythonAst.Assign) }[]
+    const reimports = [] as { name: string, ast: (pythonAst.Import|pythonAst.ImportFrom) }[]
+    const exportedNames = new Set<string>()
+
+    for (const n of m.body) {
+      const isFunction = n.__python_type_name == 'FunctionDef' || n.__python_type_name == 'AsyncFunctionDef'
+      const isClass = n.__python_type_name == 'ClassDef'
+      const isVar = n.__python_type_name == 'AnnAssign' || n.__python_type_name == 'Assign'
+      const isImport = n.__python_type_name == 'Import' || n.__python_type_name == 'ImportFrom'
+      
+      if (isFunction && rootNames.includes((n as pythonAst.FunctionDef).name)) {
+        const _n = n as pythonAst.FunctionDef
+        funcs.push({
+          name: _n.name,
+          ast: _n,
+        })
+        exportedNames.add(_n.name)
+      }
+      else if (isClass && rootNames.includes((n as pythonAst.ClassDef).name)) {
+        const _n = n as pythonAst.ClassDef
+        classes.push({
+          name: _n.name,
+          ast: _n,
+        })
+        exportedNames.add(_n.name)
+      }
+      else if (isVar) {
+        // const _n = n as pythonAst.AnnAssign | pythonAst.Assign
+        if (n.__python_type_name == 'AnnAssign') {
+          const _n = n as pythonAst.AnnAssign
+          const target = _n.target
+          if (target.__python_type_name == 'Name') {
+            const _target = target as pythonAst.Name
+            if (rootNames.includes(_target.id)) {
+              vars.push({
+                name: _target.id,
+                ast: _n,
+              })
+              exportedNames.add(_target.id)
+            }
+          }
+        }
+        else {
+          const _n = n as pythonAst.Assign
+          const target = _n.targets[0]
+          if (target.__python_type_name == 'Name') {
+            const _target = target as pythonAst.Name
+            if (rootNames.includes(_target.id)) {
+              vars.push({
+                name: _target.id,
+                ast: _n,
+              })
+              exportedNames.add(_target.id)
+            }
+          }
+        }
+        
+      }
+      else if(isImport) {
+        if (n.__python_type_name == 'Import') {
+          const _n = n as pythonAst.Import
+          for (const name of _n.names) {
+            const aliasRes = name.asname ? name.asname : name.name
+            if (rootNames.includes(aliasRes)) {
+              reimports.push({
+                name: aliasRes,
+                ast: _n,
+              })
+              exportedNames.add(aliasRes)
+            }
+          }
+        }
+        else {
+          const _n = n as pythonAst.ImportFrom
+          for (const name of _n.names) {
+            const aliasRes = name.asname ? name.asname : name.name
+            if (rootNames.includes(aliasRes)) {
+              reimports.push({
+                name: aliasRes,
+                ast: _n,
+              })
+              exportedNames.add(aliasRes)
+            }
+          }
+        }
+      }
     }
 
-    const pyAst: pythonAst.Module = moduleAst
-    pythonAst.environmentVerify.recursiveExpandVerifyNodeInline(pyAst, this.platform!, this.version!)
-    const resolver = new pythonResolver.inner.PyAstModuleResolver(pyAst)
+    // since override with cause one name exported multitimes, simply
+    // compare length of "exportedNames" and "rootNames" sometime cause an error.
+    // we need to check every name
+    const failedNames: string[] = []
+    for (const s of rootNames) {
+      if (!exportedNames.has(s)) {
+        failedNames.push(s)
+        
+      }
+    }
+    if (failedNames.length) {
+      console.warn('not exported: ', failedNames)
+      console.log('root: ', m)
+      throw new Error('getExports: partial exports')
+    }
+    else {
+      console.log('All reference exported successfully! 😀')
+    }
 
+    return new PyExports(
+      funcs,
+      classes,
+      vars,
+      reimports,
+    )
+  }
+
+  resolveModule(name: string, ast: pythonAst.Module): PyExports {
+    const _expandCrazyImportInline = (m: pythonAst.Module, name: string) => {
+      for(const n of m.body) {
+        if (n.__python_type_name == 'ImportFrom') {
+          const _n = n as pythonAst.ImportFrom
+          if (_n.names[0].name == '*') {
+            // 展开智障Import
+            let importModule: string
+            if (_n.level == 0) {
+              importModule = _n.module
+            }
+            else if (_n.level == 1) {
+              importModule = `${name}.${_n.module}`
+            }
+            else {
+              console.error(_n)
+              throw new Error(`_expandCrazyImportInline: too deep import`)
+            }
+            
+            const targetExports = this.exports.get(importModule)
+            if (!targetExports) {
+              console.error(name,m)
+              throw new Error(`target module "${importModule}" has not been resolved`)
+            }
+            const targetNames = targetExports.allNames()
+            _n.names = targetNames.map(x => ({ name: x, __python_type_name: 'alias' }))
+          }
+        }
+      }
+    }
+    // check cache
+    const cacheKey = `py-mod-resolve-${name}`
+    const cache = window.localStorage.getItem(cacheKey)
+    if (cache !== null) {
+      const _cache = JSON.parse(cache)
+      return new PyExports(_cache.funcs, _cache.classes, _cache.vars, _cache.reimports)
+    }
+
+    _expandCrazyImportInline(ast, name)
     // cache
-    const res = resolver.getExports()
+    const res = this._getExports(ast)
     window.localStorage.setItem(cacheKey, JSON.stringify(res))
 
     return res
@@ -107,26 +299,47 @@ export class SymbolRoot {
     const res = await pythonResolver.outer.treeResolve(this._stdTypeShedPath)
     const modulePaths = res.toFlat()
     const asts = await Promise.all(modulePaths.map(x => this.modAst(x.name, x.path)))
-    // this.modules = modulePaths.map(x => x.name)
-    // modulePaths.forEach(item => {
-    //   this.paths.set(item.name, item.path)
-    // })
-    // asts.forEach((item, i) => {
-    //   this.asts.set(modulePaths[i].name, item)
-    // })
+    this.modules = modulePaths.map(x => x.name)
+    modulePaths.forEach(item => {
+      this.paths.set(item.name, item.path)
+    })
+    asts.forEach((item, i) => {
+      this.asts.set(modulePaths[i].name, item)
+    })
   }
-  async _initPriorities() {
+  async _initAstEnvironmentExpand() {
+    for(const ast of this.asts.values()) {
+      pythonAst.environmentVerify.recursiveExpandVerifyNodeInline(ast, this.platform!, this.version!)
+    }
+  }
+  async _initPrioritiesAndSort() {
     // 获取一个节点使用的import*
-    const getCrazyImport = (m: pythonAst.Module): string[] => {
+    const getCrazyImport = (name: string, m: pythonAst.Module): string[] => {
       const res = []
       const arr = m.body.filter(x => x.__python_type_name == 'ImportFrom')
       for (const n of arr) {
         const _n = n as pythonAst.ImportFrom
         if (_n.names.length == 1 && _n.names[0].name == '*') {
           const src = _n.module
-          res.push(src)
+          if (_n.level == 0) {
+            res.push(src)
+          }
+          else if (_n.level == 1) {
+            res.push(`${name}.${src}`)
+          }
+          else {
+            console.error('Unknow level ', _n.level, _n)
+          }
         }
       }
+      // console.log(`${name}: `, res)
+      // if (name == 'asyncio') {
+      //   setTimeout(() => {
+      //     console.log(arr)
+      //     console.log(m.body.filter(x => x.__python_type_name == 'ImportFrom'))
+      //     console.log(m.body.filter(x => x.__python_type_name != 'ImportFrom'))
+      //   }, 1000)
+      // }
       return res
     }
     
@@ -136,38 +349,74 @@ export class SymbolRoot {
     }
 
     // 赋权
-    for (const module of this.modules) {
-      const ast = this.asts.get(module)
-      const crazyImports = getCrazyImport(ast!)
-      for (const item of crazyImports) {
-        if (!this.priorities.has(item)) {
-          throw new Error(`no module named ${item}`)
-        }
-        this.priorities.set(item, this.priorities.get(item)! + 1)
+    const LOOP_LIMIT = 100
+    for (let i=0;i<LOOP_LIMIT;i++) {
+
+      const activated = this.modules.filter(m => this.priorities.get(m)! >= i)
+      if (!activated.length) {
+        break
       }
+
+      for (const module of activated) {
+        const ast = this.asts.get(module)
+        const crazyImports = getCrazyImport(module, ast!)
+
+        if (crazyImports.length) {
+          // const selfPriority = this.priorities.get(module)!
+          for (const item of crazyImports) {
+            if (!this.priorities.has(item)) {
+              console.error('from', module)
+              console.error('crazyImports', crazyImports)
+              throw new Error(`no module named ${item}`)
+            }
+            this.priorities.set(item, i+1)
+          }
+        }
+        
+      }
+
+      if (i == LOOP_LIMIT-1) {
+        throw new Error('_initPriorities failed LOOP_LIMIT reached')
+      }
+    }
+
+    const prioritiesKv = [] as { name: string, priority: number }[]
+    for (const [k, v] of this.priorities.entries()) {
+      prioritiesKv.push({ name: k, priority: v })
+    }
+    prioritiesKv.sort((a, b) => b.priority - a.priority)
+    // console.log('priorities', prioritiesKv.filter(x => x.priority != 0))
+
+    const moduleNameSorted = prioritiesKv.map(x => x.name)
+    this.modules = moduleNameSorted
+    
+
+    // debug show all priorities
+    // const pair = [] as [string, number][]
+    // this.priorities.forEach((v, k) => {
+    //   pair.push([k, v])
+    // })
+    // pair.sort((a, b) => b[1] - a[1])
+    
+  }
+  async _initExports() {
+    for (let i = 0; i < this.modules.length; i++) {
+      const name = this.modules[i]
+      const path = this.paths.get(name)!
+      const ast = this.asts.get(name)!
+      // console.log(`===== ${name}`)
+      const exports = this.resolveModule(name, ast)
+      this.exports.set(name, exports)
+      // console.log(`===== ${this.exports.size}/${this.modules.length}`)
     }
   }
 
   async resolveAll() {
     await this._initPythonVersion()
     await this._initPythonPlatform()
-    console.log('3')
     await this._initModulesPathsAsts()
-    // console.log('4')
-    // await this._initPriorities()
-
-    // console.log(this.priorities)
-
-    // const sorted = pythonResolver.inner.sortByReference(asts.map((item, i) => ({ name: modulePaths[i].name, ast: item })))
-
-    // for (let i = 0; i < modulePaths.length; i++) {
-    //   const { name, path } = modulePaths[i]
-    //   // const name = modulePath.name
-    //   console.log(`===== ${name}`)
-    //   const exports = this.resolveModule(name, asts[i])
-    //   moduleExports.set(name, exports)
-    //   console.log(`===== ${moduleExports.size}/${modulePaths.length}`)
-    // }
-    // console.log(moduleExports)
+    await this._initAstEnvironmentExpand()
+    await this._initPrioritiesAndSort()
+    await this._initExports()
   }
 }

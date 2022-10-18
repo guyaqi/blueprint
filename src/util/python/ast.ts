@@ -12,7 +12,7 @@ export namespace pythonAst {
 
   export interface alias extends Node {
     name: string
-    asname: string
+    asname?: string
   }
 
   export interface Import extends Node {
@@ -95,8 +95,10 @@ export namespace pythonAst {
   export interface arguments extends Node {
     posonlyargs: arg[]
     args: arg[]
+    vararg: arg
     kwonlyargs: arg[]
     kw_defaults: (Node | null)[]
+    kwarg: arg
     defaults: (Node | null)[]
   }
 

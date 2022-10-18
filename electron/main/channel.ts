@@ -123,7 +123,9 @@ export function useChannels(webContents: WebContents) {
 
   addClientChannel('os-exec', (e, c, s, d: { cmd: string }) => {
     console.log(`exec: ${d.cmd}`)
-    const buffer = child_process.execSync(d.cmd)
+    const buffer = child_process.execSync(d.cmd, {
+      maxBuffer: 32 * 1024 * 1024
+    })
     const decoder = new TextDecoder()
     const text = decoder.decode(buffer)
     e.reply(c, s, {

@@ -3,8 +3,7 @@ import { onMounted, Ref, ref } from 'vue'
 import store from '../../store';
 import { Point } from '../../util/blueprint/math';
 import { BPSType, BPS, BPSInstance } from '../../util/blueprint/slot';
-import { shell } from '../../util/shell/shell';
-import BSlotIcon from './BSlotIcon.vue';
+import BSlotIcon from '../Graph/BSlotIcon.vue';
 import { workspace } from '../../util/workspace'
 
 const { instance, } = defineProps<{ instance: BPSInstance }>()
@@ -13,38 +12,12 @@ const config = instance.config
 
 const isProcess = config.type == BPSType.PROCESS
 const isData = config.type == BPSType.DATA
-const isLiterial = config.type == BPSType.LITERIAL
+// const isLiterial = config.type == BPSType.LITERIAL
 
 const iconRef = ref(null as (null | HTMLElement))
 
 
 const click = () => {
-  // const slotEl = iconRef.value
-  // const iconEl = slotEl!.querySelector('.icon-wrapper')!
-  // let parent = iconEl!.parentElement!
-
-  // // depth limit 10
-  // for (let i=0;i<10;i++) {
-  //   parent = parent.parentElement!
-  //   if (parent?.classList.contains('graph-canvas')) {
-  //     break
-  //   }
-  // }
-
-  // if (!parent) {
-  //   return
-  // }
-
-  // const iconBox = iconEl.getBoundingClientRect()
-  // const parentBox = parent.getBoundingClientRect()
-
-  // const position: Point = {
-  //   x: iconBox.left + iconBox.width/2 - parentBox.left,
-  //   y: iconBox.top + iconBox.height/2 - parentBox.top,
-  // }
-
-  // console.log(position)
-
   workspace.value.oCtx!.clickSlot(instance)
 }
 
@@ -93,11 +66,11 @@ onMounted(() => {
   
 <template>
   <div ref="root" class="bslot-root" @mousedown.stop @click.stop="click">
-    <div v-if="isLiterial" class="bslot">
+    <!-- <div v-if="isLiterial" class="bslot">
       <div v-if="config.name">{{ config.name }}</div>
       <input class="slot-input" src="" alt="">
-    </div>
-    <div v-else class="bslot" ref="iconRef">
+    </div> -->
+    <div class="bslot" ref="iconRef">
       <BSlotIcon v-if="!config.isOut" :slot-type="config.type" :connect="true" />
       <div v-if="config.name">{{ config.name }}</div>
       <BSlotIcon v-if="config.isOut" :slot-type="config.type" :connect="true" />

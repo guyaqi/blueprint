@@ -1,28 +1,34 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity';
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import store from '../../store';
 // import { context } from '../../util/blueprint/context';
 import { Point } from '../../util/blueprint/math';
 import { BPNInstance } from '../../util/blueprint/node';
-import { flatSymbolToBPN } from '../../util/blueprint/python-import';
-import { FlatSymbol, FlatSymbolType } from '../../util/blueprint/python-import'
+import { symbol } from '../../util/blueprint/symbol'
 import { workspace } from '../../util/workspace'
+import { pyBridge } from '../../util/python'
 
 const emit = defineEmits<{
   (event: 'close'): void
 }>()
 
-const service = computed(() => store.state.service)
-const flatSymbols = ref([] as FlatSymbol[])
+
+const flatSymbols = ref([] as symbol.FlatSymbol[])
 
 const rootRef = ref(null as (null | HTMLElement))
 
-watch(service, value => {
-  if(!value) {
-    return
-  }
-  flatSymbols.value = value.getFlatSymbolList()
+// watch(computed(() => pyBridge.value._inited), value => {
+//   if(!value) {
+//     return
+//   }
+//   flatSymbols.value = value.getFlatSymbolList()
+// })
+
+onMounted(() => {
+  pyBridge.value.init().then(() => {
+    flatSymbols.value = pyBridge.value.getFlats()
+  })
 })
 
 /**
@@ -31,37 +37,22 @@ watch(service, value => {
  * 
  */
 const SEARCH_DISPLAY_LIMIT = 1000
-const searchText = ref('req.get')
+// const searchText = ref('req.get')
+// const searchText = ref('print')
+const searchText = ref('join')
 const forceShowAll = ref(false)
 const searchResult = computed(() => {
   if (searchText.value === '') {
     return []
   }
   forceShowAll.value = false
-
-  let match: FlatSymbol[]
-  if (searchText.value.indexOf('.')>=0) {
-    const arr = searchText.value.split('.')
-    const srFrom = arr[0]
-    const srName = arr[1]
-    match = flatSymbols.value.filter(x => {
-      return x.name.startsWith(srName) && x.from.includes(srFrom)
-    })
-  }
-  else {
-    match = flatSymbols.value.filter(x => x.name.startsWith(searchText.value))
-  }
-  
-  match.sort((a, b) => {
-    return a.name.localeCompare(b.name)
-  })
-  return match
+  return symbol.search(searchText.value, flatSymbols.value)
 })
-const srClass = computed(() => searchResult.value.filter(x => x.type == FlatSymbolType.CLASS))
-const srFunction = computed(() => searchResult.value.filter(x => x.type == FlatSymbolType.FUNCTION))
-const srVar = computed(() => searchResult.value.filter(x => x.type == FlatSymbolType.CONSTANT))
+const srClass = computed(() => searchResult.value.filter(x => symbol.isClass(x)))
+const srFunction = computed(() => searchResult.value.filter(x => symbol.isFunction(x)))
+const srVar = computed(() => searchResult.value.filter(x => symbol.isConst(x)))
 
-const cBpI = (symbol: FlatSymbol) => {
+const instantiate = (s: symbol.FlatSymbol) => {
   if (!rootRef.value) {
     return
   }
@@ -71,7 +62,7 @@ const cBpI = (symbol: FlatSymbol) => {
     x: rootRef.value.offsetLeft,
   }
 
-  const node = new BPNInstance(flatSymbolToBPN(symbol))
+  const node = new BPNInstance(symbol.toBPN(s))
   node.position = genPos
 
   workspace.value.oCtx!.nodes.push(node)
@@ -81,45 +72,48 @@ const cBpI = (symbol: FlatSymbol) => {
 </script>
   
 <template>
-  <div class="bp-menu" @click.stop ref="rootRef">
+  <div class="bp-menu" @click.stop @mousedown.stop ref="rootRef">
     <!-- <div class="title">
       根符号
     </div> -->
     <div class="search-row">
       <input type="text" class="search-box" v-model="searchText" placeholder="search symbols...">
     </div>
-    <div v-if="service" class="search-option-scroll scroll-appearance">
+    <div v-if="workspace" class="search-option-scroll scroll-appearance">
       <div v-if="searchResult.length >= SEARCH_DISPLAY_LIMIT && !forceShowAll" class="simple-list-item">
         共{{searchResult.length}}条结果, <span class="text-link" @click="forceShowAll=true">展开显示</span>
       </div>
       <div v-if="searchResult.length < SEARCH_DISPLAY_LIMIT || forceShowAll" class="search-option-list">
         <div v-if="srClass.length">
           <div class="title name-class">> 类</div>
-          <div v-for="item in srClass" class="simple-list-item click hover-hl" @click="cBpI(item)">
+          <div v-for="item in srClass" class="simple-list-item click hover-hl" @click="instantiate(item)">
             <span class="name-package">{{item.from}}&nbsp;</span>
-            <span class="name-class">{{ item.name }}</span>
+            <span class="name-class">{{ item.name }}&nbsp;</span>
+            <span>{{ item.desc }}</span>
           </div>
         </div>
         <div v-if="srFunction.length">
           <div class="title name-function">> 函数</div>
-          <div v-for="item in srFunction" class="simple-list-item click hover-hl" @click="cBpI(item)">
+          <div v-for="item in srFunction" class="simple-list-item click hover-hl" @click="instantiate(item)">
             <span class="name-package">{{item.from}}&nbsp;</span>
-            <span class="name-function">{{ item.name }}</span>
-            <span>(</span>
+            <span class="name-function">{{ item.name }}&nbsp;</span>
+            <span>{{ item.desc }}</span>
+            <!-- <span>(</span>
             <span v-for="(iitem, index) in item.functionSignature">
               <span>{{ index == 0 ? '' : ', ' }}</span>
               <span>{{iitem.param}}</span>
               <span>{{ iitem.type == 'inspect._empty' ? '' : `, ${iitem.type}` }}</span>
             </span>
-            <span>)</span>
+            <span>)</span> -->
           </div>
         </div>
         <div v-if="srVar.length">
           <div class="title name-constant">> 常量引用</div>
-          <div v-for="item in srVar" class="simple-list-item click hover-hl" @click="cBpI(item)">
+          <div v-for="item in srVar" class="simple-list-item click hover-hl" @click="instantiate(item)">
             <span class="name-package">{{item.from}}&nbsp;</span>
-            <span class="name-constant">{{ item.name }}:&nbsp;</span>
-            <span class="name-class">{{ item.varType }}</span>
+            <span class="name-constant">{{ item.name }}&nbsp;</span>
+            <span>{{ item.desc }}</span>
+            <!-- <span class="name-class">:&nbsp;{{ item.varType }}</span> -->
           </div>
         </div>
       </div>

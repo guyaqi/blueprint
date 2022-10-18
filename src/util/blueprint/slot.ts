@@ -9,7 +9,8 @@ export enum BPSType {
   // Empty,
   PROCESS,
   DATA,
-  LITERIAL
+  LITERIAL,
+  AUTO_LIST,
 }
 
 export class BPS {
@@ -50,8 +51,20 @@ export class BPSInstance {
 
   id: string = randomName('bpsi-')
 
+  // when config.type == BPSType.AUTO_LIST
+  sub: BPSInstance[] = []
+
   constructor(config: BPS) {
     this.config = config
+  }
+
+  addSub() {
+    if (this.config.type != BPSType.AUTO_LIST) {
+      throw new Error("addSub: only AUTO_LIST instance can addSub")
+    }
+    this.sub.push(new BPSInstance(
+      new BPS(BPSType.DATA, `${this.config.name}[${this.sub.length}]`, this.config.isOut)
+    ))
   }
 
   static fromObj(o: any): BPSInstance {

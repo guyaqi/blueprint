@@ -6,11 +6,12 @@ import store from '../../store';
 import { BPNInstance, BPNType } from '../../util/blueprint/node'
 import LinkLayer from './LinkLayer.vue';
 import { Point } from '../../util/blueprint/math';
-import BpMenu from './BpMenu.vue';
+import ContentMenu from './ContentMenu.vue';
 import { computed } from '@vue/reactivity';
 import Func from '../GraphNode/Func.vue';
 import ImportantProcess from '../GraphNode/ImportantProcess.vue';
 import { workspace } from '../../util/workspace';
+import NodeWrapper from '../GraphNode/NodeWrapper.vue';
 
 
 const mouseup = (e: MouseEvent) => {
@@ -62,7 +63,7 @@ const contextmenu = (e: MouseEvent) => {
   bpMenuPosition.value.y = e.clientY
   // e.preventDefault()
 }
-const click = (e: MouseEvent) => {
+const dblclick = (e: MouseEvent) => {
   isBpMenuShown.value = false
 }
 watch(computed(() => context.value?.nodes), (value, oldValue) => {
@@ -79,18 +80,13 @@ const nodes = computed(() => context.value?.nodes)
   
 <template>
   <div class="graph-canvas" ref="rootRef" @mouseup="mouseup" @mousemove="mousemove" @contextmenu.prevent="contextmenu"
-    @click="click">
+    @dblclick="dblclick">
     <div class="no-open-things" v-if="!context">Open a function to design.</div>
-    
-    <!-- <div class="node-layer" v-if="context">
-      
-    </div> -->
-
-    <Func v-if="context" v-for="node in context.functionNodes" :instance="node" />
-    <ImportantProcess v-if="context" v-for="node in context.importantProcessNodes" :instance="node" />
+  
+    <NodeWrapper v-if="context" v-for="node in context.nodes" :inst="node"  />
 
     <LinkLayer class="link-layer-z" />
-    <BpMenu v-show="isBpMenuShown" :style="bpMenuStyleExtra" @close="isBpMenuShown=false" />
+    <ContentMenu v-show="isBpMenuShown" :style="bpMenuStyleExtra" @close="isBpMenuShown=false" />
   </div>
 </template>
   

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { BPNInstance } from '../../util/blueprint/node';
 import { useBPNH } from '../../util/hooks';
-import BSlot from '../Graph/BSlot.vue';
+import SlotWrapper from '../GraphSlot/SlotWrapper.vue';
 
 const { instance, preview } = defineProps<{ instance: BPNInstance, preview?: boolean }>()
 
@@ -25,13 +25,13 @@ const {
 
     <div class="main">
       <div class="col">
-        <BSlot v-for="si in instance.inslots" :instance="si" />
+        <SlotWrapper v-for="si in instance.inslots" :instance="si" />
       </div>
 
       <div class="col p-3"></div>
 
       <div class="col outSlot-list">
-        <BSlot v-for="si in instance.outslots" :instance="si" />
+        <SlotWrapper v-for="si in instance.outslots" :instance="si" />
       </div>
     </div>
   </div>
