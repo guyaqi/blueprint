@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import store from '../../store';
 import { FsTreeNode } from '../../util/workspace';
-import { BaseTreeNode, BaseTree } from '../../util/datastructure/tree';
+import { ActionNode, BaseNode, Tree } from '../../util/datastructure/tree';
 import TreeItem from '../common/Tree/TreeItem.vue';
 import { workspace } from '../../util/workspace'
 import editor from '../../util/editor';
@@ -14,69 +14,84 @@ workspace.value.init()
 const title = computed(() => workspace.value.title ? workspace.value.title : '-')
 const srcTree = computed(() => workspace.value.fileTree)
 
-const classFunc = (node: BaseTree<BaseTreeNode>) => {
+const classFunc = (node: Tree<BaseNode>) => {
   return {
     'name-class': node.isLeaf(),
     'name-package': !node.isLeaf(),
   }
 }
 
-const clickFileTree = async (item: BaseTree<FsTreeNode>) => {
-  
-  workspace.value.focusPath = item.inner.path
+const focusPath = ref('')
+
+const clickFile = async (item: Tree<FsTreeNode>) => {
+  focusPath.value = item.inner.path
+}
+
+const dblClickFile = async (item: Tree<FsTreeNode>) => {
   if (!item.inner.isDir) {
     editor.value.openFile(item.inner.path)
   }
 }
 
-const titleFilter = (tree: BaseTree<BaseTreeNode>) => {
-  return tree.title.endsWith('.json') ? tree.title.slice(0, tree.title.length - 5) : tree.title
-}
-
-const editCallback = async (tree: BaseTree<BaseTreeNode>, newTitle: string) => {
+const editCallback = async (tree: Tree<BaseNode>, newTitle: string) => {
   await os.rename({ path: (tree.inner as FsTreeNode).path, newName: newTitle })
   workspace.value.reload()
 }
 
 const isActionsShow = ref(false)
 
-const activeDir = (): BaseTree<FsTreeNode> | undefined => {
-  const path = workspace.value.focusPath
+const activeDir = (): Tree<FsTreeNode> | undefined => {
+  let res: Tree<FsTreeNode> | undefined
+  const path = focusPath.value
   if (!path) {
-    return undefined
-  }
-  const node = srcTree.value?.findDeep(x => (x as BaseTree<FsTreeNode>).inner.path == path)
-  if (!node) {
-    return undefined
-  }
-  if (node.isLeaf()) {
-    return node.parent
+    if (srcTree.value) {
+      res = srcTree.value
+    }
+    else {
+      res = undefined
+    }
   }
   else {
-    return node
+    const node = srcTree.value?.findDeep(x => (x as Tree<FsTreeNode>).inner.path == path)
+    if (!node) {
+      res = undefined
+    }
+    else if (node.isLeaf()) {
+      res = node.parent
+    }
+    else {
+      res = node
+    }
   }
+  return res
 }
 
+let newDir = false
 const newFile = () => {
   const dir = activeDir()
-  console.log('active: ', dir)
-  dir?.request('newfile')
+  if (!dir) {
+    return
+  }
+  newDir = false
+  dir.tryCall(i => i.newSub())
 }
 
 const newFolder = () => {
   const dir = activeDir()
-  console.log('active: ', dir)
-  dir?.request('newfolder')
+  if (!dir) {
+    return
+  }
+  newDir = true
+  dir.tryCall(i => i.newSub())
 }
 
 const refresh = () => {
   workspace.value.reload()
 }
 
-const requestFinishCb = (reqName: string, node: BaseTreeNode) => {
-  // console.log(reqName, )
-  const path = (node as FsTreeNode).path
-  if (reqName == 'newfile') {
+const createCb = (from: Tree<BaseNode>, newName: string) => {
+  const path = os.path.join((from.inner as FsTreeNode).path, newName)
+  if (!newDir) {
     os.fileCreate({ path: `${path}.bp`, })
   }
   else {
@@ -85,6 +100,38 @@ const requestFinishCb = (reqName: string, node: BaseTreeNode) => {
   workspace.value.reload()
 }
 
+const deleteTree = async (tree: Tree<BaseNode>): Promise<void> => {
+  const res = window.confirm(`Are you sure want to delete: "${tree.title}"`)
+  if (res) {
+    const path = (tree.inner as FsTreeNode).path
+    console.log(`delete: ${path}`)
+    await os.rm({ path, })
+    workspace.value.reload()
+  }
+}
+
+const renameTree = (tree: Tree<BaseNode>): void => {
+
+}
+
+const onContextMenu = (tree: Tree<BaseNode>): ActionNode<BaseNode>|null => {
+  const nodeMenu = [
+    { title: 'Rename', action: renameTree },
+    { title: 'Delete', action: deleteTree },
+  ]
+  
+  const rootMenu = [
+  { title: 'Root', action: () => {} },
+  ] as ActionNode<BaseNode>[]
+
+  const isRoot = (tree.inner as FsTreeNode).path == srcTree.value!.inner.path
+
+  return {
+    title: '',
+    children: isRoot ? rootMenu : nodeMenu,
+    action: () => {}
+  }
+}
 </script>
   
 <template>
@@ -99,7 +146,9 @@ const requestFinishCb = (reqName: string, node: BaseTreeNode) => {
     </div>
 
     <TreeView v-if="srcTree"
-      :tree="srcTree" :class-func="classFunc"  :click="clickFileTree" :editable="true" :edit-cb="editCallback" :requestFinishCb='requestFinishCb'/>
+      :tree="srcTree" :class-func="classFunc"  :click="clickFile" :editable="true"
+      :edit-cb="editCallback" :createCb='createCb' :dblclick="dblClickFile"
+      :onContextMenu='onContextMenu'/>
   </div>
 
 </template>

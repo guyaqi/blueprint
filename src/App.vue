@@ -9,7 +9,7 @@ import GuideMask from './components/GuideMask.vue';
 import PopupRoot from './components/Popup/PopupRoot.vue';
 import store from './store';
 import { onMounted, ref } from 'vue';
-import { workspace } from './util/workspace'
+import { editor } from './util/editor'
 import Statusbar from './components/Status/Statusbar.vue';
 
 const { ipcRenderer } = require('electron');
@@ -22,10 +22,10 @@ const trySave = (e: KeyboardEvent) => {
 	if(e.key == 's' && (navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)){
     e.preventDefault();
     
-    if (!workspace.value.oBPCI) {
+    if (!editor.value.oBPCI) {
       return
     }
-		workspace.value.saveSrc()
+		editor.value.saveSrc()
     
 		return false;
 	}

@@ -1,6 +1,6 @@
 // import { python } from './ast'
 
-import { BaseTreeNode } from "../datastructure/tree"
+import { BaseNode } from "../datastructure/tree"
 import { os } from "../os"
 import { pythonAst } from "./ast"
 
@@ -14,7 +14,7 @@ export namespace pythonResolver {
       path: string
     }
   
-    export class PyHierarchyNode implements BaseTreeNode {
+    export class PyHierarchyNode implements BaseNode {
       title: string
       isPkg: boolean
       path: string

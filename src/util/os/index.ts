@@ -78,6 +78,10 @@ export namespace os {
     'file-create'
   )
 
+  export const rm = gChnlFunc<{ path: string }, void>(
+    'file-delete'
+  )
+
   export const folderCreate = gChnlFunc<{ path: string }, void>(
     'folder-create'
   )

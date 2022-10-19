@@ -1,4 +1,4 @@
-import { BaseTreeNode } from "../datastructure/tree"
+import { BaseNode } from "../datastructure/tree"
 import { os } from "../os"
 import { TextFile } from "../os/file"
 import pyBridge from "../python"

@@ -30,9 +30,7 @@ class Editor {
   async openSrc(_path: string) {
     // const buf = ipcRenderer.send('file-load', _path)
     const f = await os.read({ path: _path})
-    console.log(f)
     const sf = TextFile.from(f)
-    console.log(sf)
 
     // already opened
     if (this.oBPCI && this.oBPCI.config.name == sf.name) {

@@ -1,20 +1,20 @@
 type UnknowDataType = any
 
-export interface BaseTreeNode {
+export interface BaseNode {
 
   // 显示的节点名称
   title: string
 
   // 子节点列表
-  children?: BaseTreeNode[]
+  children?: BaseNode[]
 }
 
 type TreeReqHandler = (reqName: string, data: any) => void
 
-export class BaseTree<T extends BaseTreeNode> {
+export class Tree<T extends BaseNode> {
   title: string;
-  children?: BaseTree<T>[];
-  parent?: BaseTree<T>;
+  children?: Tree<T>[];
+  parent?: Tree<T>;
 
   inner: T
 
@@ -25,15 +25,15 @@ export class BaseTree<T extends BaseTreeNode> {
     if (node.children) {
       this.children = []
       for (const childNode of node.children as T[]) {
-        const child = new BaseTree(childNode)
+        const child = new Tree(childNode)
         child.parent = this
         this.children.push(child)
       }
     }
   }
 
-  root(): (BaseTree<T> | undefined) {
-    let current: (BaseTree<T> | undefined) = this
+  root(): (Tree<T> | undefined) {
+    let current: (Tree<T> | undefined) = this
     const LIMIT = 100
     for(let i=0;i<LIMIT;i++) {
       if (!current || !current.parent) {
@@ -49,9 +49,9 @@ export class BaseTree<T extends BaseTreeNode> {
     return current
   }
 
-  hierarchy(): BaseTree<T>[] {
-    const path = [] as BaseTree<T>[]
-    let current: (BaseTree<T> | undefined) = this
+  hierarchy(): Tree<T>[] {
+    const path = [] as Tree<T>[]
+    let current: (Tree<T> | undefined) = this
 
     path.push(current)
 
@@ -63,7 +63,7 @@ export class BaseTree<T extends BaseTreeNode> {
     return path
   }
 
-  child(name: string): BaseTree<T> | null {
+  child(name: string): Tree<T> | null {
     const a = this.children?.filter(x => x.title == name)
     if (!a || a.length == 0) {
       return null
@@ -119,13 +119,26 @@ export class BaseTree<T extends BaseTreeNode> {
    * 
    */
   
-  _reqHandlers: TreeReqHandler[] = []
-  addRequestHandler(h: TreeReqHandler) {
-    this._reqHandlers.push(h)
+  // _reqHandlers: TreeReqHandler[] = []
+  // addRequestHandler(h: TreeReqHandler) {
+  //   this._reqHandlers.push(h)
+  // }
+  // request(reqName: string, data?: any) {
+  //   for(const item of this._reqHandlers) {
+  //     item(reqName, data)
+  //   }
+  // }
+
+  /**
+   * Binding
+   */
+  private _bindInst?: any
+  bindInst(_inst: any) {
+    this._bindInst = _inst
   }
-  request(reqName: string, data?: any) {
-    for(const item of this._reqHandlers) {
-      item(reqName, data)
+  tryCall(func: (i: any) => void) {
+    if (this._bindInst) {
+      func(this._bindInst)
     }
   }
 
@@ -134,7 +147,7 @@ export class BaseTree<T extends BaseTreeNode> {
    * FindDeep
    * 
    */
-  findDeep(predict: (t: BaseTree<T>) => boolean): BaseTree<T> | undefined {
+  findDeep(predict: (t: Tree<T>) => boolean): Tree<T> | undefined {
     if (predict(this)) {
       return this
     }
@@ -155,7 +168,7 @@ export class BaseTree<T extends BaseTreeNode> {
    * 
    */
 
-  static _parseNode<ST extends BaseTreeNode>(
+  static _parseNode<ST extends BaseNode>(
     data: UnknowDataType,
     titleFunc: (o: UnknowDataType) => string,
     childrenFunc: (o: UnknowDataType) => (UnknowDataType[] | undefined)
@@ -172,12 +185,20 @@ export class BaseTree<T extends BaseTreeNode> {
     return { title, children } as ST
   }
 
-  static parse<ST extends BaseTreeNode>(
+  static parse<ST extends BaseNode>(
     data: UnknowDataType,
     titleFunc: (o: UnknowDataType) => string,
     childrenFunc: (o: UnknowDataType) => (UnknowDataType[] | undefined)
-  ): BaseTree<ST> {
+  ): Tree<ST> {
     
-    return new BaseTree(this._parseNode(data, titleFunc, childrenFunc))
+    return new Tree(this._parseNode(data, titleFunc, childrenFunc))
   }
+}
+
+/**
+ * Derives
+ */
+export interface ActionNode<T extends BaseNode> extends BaseNode {
+  children?: ActionNode<T>[]
+  action: (tree: Tree<T>) => void
 }

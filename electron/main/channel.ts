@@ -164,6 +164,15 @@ export function useChannels(webContents: WebContents) {
     e.reply(c, s, null)
   })
 
+  addClientChannel('file-delete', (e, c, s, d: { path: string }) => {
+    console.log(`delete ${d.path}`)
+    fs.rmSync(d.path, {
+      force: true,
+      recursive: true
+    })
+    e.reply(c, s, null)
+  })
+
   addClientChannel('folder-create', (e, c, s, d: { path: string }) => {
     console.log(`create ${d.path}`)
     fs.mkdirSync(d.path)

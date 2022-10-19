@@ -8,7 +8,7 @@ import { ref } from "vue"
 import { BPCtx } from "../blueprint/context"
 import { BPN } from "../blueprint/node"
 import { BPC, BPCI } from "../blueprint/struct"
-import { BaseTree, BaseTreeNode } from "../datastructure/tree"
+import { Tree, BaseNode } from "../datastructure/tree"
 import { shell } from "../logger"
 import { useLocalStorage } from '@vueuse/core'
 import { BpSrcFile } from "../os/file"
@@ -36,15 +36,15 @@ import { os } from "../os"
 
 const { ipcRenderer } = require('electron')
 
-export class FsTreeNode implements BaseTreeNode {
+export class FsTreeNode implements BaseNode {
   title: string
 
   isDir: boolean
   path: string
 
-  children?: BaseTreeNode[]
+  children?: BaseNode[]
 
-  constructor(title: string, isDir: boolean, path: string, children?: BaseTreeNode[]) {
+  constructor(title: string, isDir: boolean, path: string, children?: BaseNode[]) {
     this.title = title
     this.isDir = isDir
     this.path = path
@@ -73,10 +73,10 @@ class Workspace {
     return arr[arr.length - 1]
   }
 
-  focusPath?: string
+  // focusPath?: string
 
   isInited: boolean = false
-  fileTree: (null|BaseTree<FsTreeNode>) = null
+  fileTree: (null|Tree<FsTreeNode>) = null
 
   init() {
     if (this.isInited) {
@@ -115,7 +115,7 @@ class Workspace {
     }
     ipcRenderer.on("workspace-load", (e: IpcRendererEvent, s:number, d: { tree: FsTreeNode }) => {
       defaultSort(d.tree)
-      this.fileTree = new BaseTree(d.tree)
+      this.fileTree = new Tree(d.tree)
       this.path = d.tree.path
     })
   }

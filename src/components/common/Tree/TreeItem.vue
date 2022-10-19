@@ -1,38 +1,56 @@
 <script setup lang="ts">
 import { ref, StyleValue } from 'vue'
-import { BaseTree, BaseTreeNode } from '../../../util/datastructure/tree';
+import { Tree, BaseNode } from '../../../util/datastructure/tree';
 
 import { useLocalStorage } from '@vueuse/core'
 import { computed } from '@vue/reactivity';
-import { FsTreeNode } from '../../../util/workspace';
-import { os } from '../../../util/os';
+import TreeItemSub from './TreeItemSub.vue';
 
-// 
-// interface TreeItemProp {
-//   node: NodeType,
-//   styleFunc: (n: any) => StyleSheetList
-// }
+// defineOp
+
+const emits = defineEmits<{
+  (event: 'clickTree', tree: Tree<BaseNode>): void,
+  (event: 'dblclickTree', tree: Tree<BaseNode>): void,
+  (event: 'contextmenuTree', tree: Tree<BaseNode>): void,
+}>()
 
 const props = defineProps<{
-  tree: BaseTree<any>,
+  tree: Tree<any>,
+  asRoot?: boolean
+
   styleFunc?: (n: any) => StyleValue,
   classFunc?: (n: any) => any,
-  click?: (tree: BaseTree<any>) => any,
-  // titleFilter?: (n: BaseTree<BaseTreeNode>) => string,
   editable?: boolean
-  editCb?: (tree: BaseTree<any>, newTitle: string) => any,
-  requestFinishCb?: (reqName: string, node: BaseTreeNode) => void,
+  editCb?: (tree: Tree<any>, newTitle: string) => any,
+  createCb?: (from: Tree<any>, newName: string) => void,
 }>()
 
 const isLeaf = props.tree.isLeaf()
 // const expand = node.children && !(node.children.length === 1 && node.children[0].title === 'example')
 const expand = useLocalStorage(props.tree.hierarchy().map(x => x.title).join('-'), false)
 
-const _click = () => {
-  if (props.click) {
-    props.click(props.tree)
-  }
+const clickSelf = () => {
   expand.value = !expand.value
+  emits('clickTree', props.tree)
+}
+
+const dblclickSelf = () => {
+  emits('dblclickTree', props.tree)
+}
+
+const contextmenuSelf = () => {
+  emits('contextmenuTree', props.tree)
+}
+const clickTree = (tree: Tree<BaseNode>) => {
+  emits('clickTree', tree)
+}
+
+const dblclickTree = (tree: Tree<BaseNode>) => {
+  emits('dblclickTree', tree)
+}
+
+const contextmenuTree = (tree: Tree<BaseNode>) => {
+  emits('contextmenuTree', tree)
 }
 
 const extraStyle = computed(() => props.styleFunc ? props.styleFunc(props.tree) : undefined) 
@@ -109,16 +127,10 @@ const newInputQuit = () => {
   newNameRef.value = ''
 }
 const newInputConfirm = () => {
-  if (!props.requestFinishCb) {
+  if (!props.createCb) {
     return
   }
-  // newNameRef
-  const newNode = new FsTreeNode(
-    newNameRef.value,
-    isNewFolder.value,
-    os.path.join((props.tree.inner as FsTreeNode).path, newNameRef.value)
-  )
-  props.requestFinishCb(lastRequest.value, newNode)
+  props.createCb(props.tree, newNameRef.value)
   setTimeout(() => {
     newInputRef.value?.blur()
   })
@@ -134,43 +146,48 @@ const newInputKD = (e: KeyboardEvent) => {
   }
 }
 
-const requestCB = (reqName: string, data: any) => {
-  lastRequest.value = reqName
-  isNewFolder.value = lastRequest.value.includes('folder')
+const newSub = () => {
   isNewInputShow.value = true
   expand.value = true
   setTimeout(() => {
     newInputRef.value?.focus()
   })
 }
-props.tree.addRequestHandler(requestCB)
+
+props.tree.bindInst({
+  newSub,
+})
 </script>
   
 <template>
-  <div @click="_click" class="simple-list-item tree-item" :style="extraStyle" :class="extraClass" tabindex="0" @keydown="editName">
+  <div v-if="!asRoot" class="simple-list-item tree-item" :style="extraStyle" :class="extraClass" tabindex="0" @keydown="editName"
+    @click="clickSelf" @dblclick="dblclickSelf" @contextmenu="contextmenuSelf" >
     <!-- <div v-if="isLeaf"></div> -->
     <div class="node-item">
       <div v-if="!isLeaf" class="hint" :class="{'hint-expand': expand}">></div>
       <span v-if="!isLeaf">&nbsp;</span>
       <input ref="editorRef" v-if="editMode" type="text"
-        v-model="editorInput" class="name-edit"
+        v-model="editorInput" class="simple-input"
         @blur="editNameQuit" @keydown="editNameKD">
-      <div v-show="!editMode">{{ tree.title }}</div>
+      <div v-show="!editMode">{{ props.tree.title }}</div>
     </div>
   </div>
-  <div v-if="expand" class="sub-indent">
-    <div class="branch"></div>
+  <div v-if="expand || asRoot" class="sub-indent" :class="{ 'root-no-padding': asRoot }">
+    <div v-if="!asRoot" class="branch"></div>
     <input ref="newInputRef" v-if="isNewInputShow" type="text"
-      v-model="newNameRef" class="name-edit"
+      v-model="newNameRef" class="simple-input"
       @blur="newInputQuit" @keydown="newInputKD">
-    <TreeItem v-for="item in tree.children"
-      :tree="item"
-      :styleFunc="styleFunc"
-      :classFunc="classFunc"
-      :click="click"
-      :editable="editable"
-      :editCb="editCb"
-      :requestFinishCb='requestFinishCb'/>
+
+    <TreeItemSub
+      :tree="props.tree"
+      :styleFunc="props.styleFunc"
+      :classFunc="props.classFunc"
+      :editable="props.editable"
+      :editCb="props.editCb"
+      :createCb='props.createCb'
+      @clickTree="clickTree"
+      @dblclickTree="dblclickTree"
+      @contextmenuTree="contextmenuTree"/>
   </div>
 </template>
   
@@ -187,6 +204,9 @@ props.tree.addRequestHandler(requestCB)
     height: 100%;
     border-left: 1px solid #fff4;
   }
+}
+.root-no-padding {
+  padding-left: 0!important;
 }
 
 .hint {
@@ -214,12 +234,6 @@ props.tree.addRequestHandler(requestCB)
   }
 }
 
-.name-edit {
-  height: 24px;
-  outline: none;
-  border: 1px solid dodgerblue;
-  background-color: transparent;
-  color: white;
-}
+
 </style>
     
