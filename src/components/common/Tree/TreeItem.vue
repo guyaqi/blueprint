@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ref, StyleValue } from 'vue'
-import { BaseTree, BaseTreeNode } from '../../util/datastructure/tree';
+import { BaseTree, BaseTreeNode } from '../../../util/datastructure/tree';
 
 import { useLocalStorage } from '@vueuse/core'
 import { computed } from '@vue/reactivity';
+import { FsTreeNode } from '../../../util/workspace';
+import { os } from '../../../util/os';
 
 // 
 // interface TreeItemProp {
@@ -19,6 +21,7 @@ const props = defineProps<{
   // titleFilter?: (n: BaseTree<BaseTreeNode>) => string,
   editable?: boolean
   editCb?: (tree: BaseTree<any>, newTitle: string) => any,
+  requestFinishCb?: (reqName: string, node: BaseTreeNode) => void,
 }>()
 
 const isLeaf = props.tree.isLeaf()
@@ -37,22 +40,43 @@ const extraClass = computed(() => props.classFunc ? props.classFunc(props.tree) 
 
 const editMode = ref(false)
 const editorInput = ref(props.tree.title)
-const editorRef = ref(null as (null | HTMLElement))
+const editorRef = ref(null as (null | HTMLInputElement))
 const editName = (e: KeyboardEvent) => {
-  e.preventDefault()
+
   if (!props.editable) {
     return
   }
+  if (e.key != 'Enter' && e.key != 'F2') {
+    return
+  }
+
+  e.preventDefault()
+  
   editMode.value = true
   setTimeout(() => {
-    editorRef.value?.focus()
+    const input = editorRef.value
+    if (!input) {
+      return
+    }
+    input.focus()
+    const name = input.value
+    if (!name.length) {
+      return
+    }
+    const dotIndex = name.indexOf('.')
+    if (dotIndex < 0) {
+      input.select()
+    }
+    else {
+      input.setSelectionRange(0, dotIndex)
+    }
   })
 }
-const editQuit = () => {
+const editNameQuit = () => {
   editMode.value = false
   editorInput.value = props.tree.title
 }
-const editConfirm = () => {
+const editNameConfirm = () => {
   if (props.editCb) {
     props.editCb(props.tree, editorInput.value)
   }
@@ -60,40 +84,93 @@ const editConfirm = () => {
     editorRef.value?.blur()
   })
 }
-const keydown = (e: KeyboardEvent) => {
-  console.log(e.key)
+const editNameKD = (e: KeyboardEvent) => {
   if(e.key == 'Enter') {
-    editConfirm()
+    editNameConfirm()
     return
   }
   else if (e.key == 'Escape') {
-    editQuit()
+    editNameQuit()
     return
   }
 }
+
+/**
+ * New File & Folder
+ */
+
+const lastRequest = ref('')
+const newNameRef = ref('')
+const newInputRef = ref(null as HTMLInputElement | null)
+const isNewInputShow = ref(false)
+const isNewFolder = ref(false)
+const newInputQuit = () => {
+  isNewInputShow.value = false
+  newNameRef.value = ''
+}
+const newInputConfirm = () => {
+  if (!props.requestFinishCb) {
+    return
+  }
+  // newNameRef
+  const newNode = new FsTreeNode(
+    newNameRef.value,
+    isNewFolder.value,
+    os.path.join((props.tree.inner as FsTreeNode).path, newNameRef.value)
+  )
+  props.requestFinishCb(lastRequest.value, newNode)
+  setTimeout(() => {
+    newInputRef.value?.blur()
+  })
+}
+const newInputKD = (e: KeyboardEvent) => {
+  if(e.key == 'Enter') {
+    newInputConfirm()
+    return
+  }
+  else if (e.key == 'Escape') {
+    newInputQuit()
+    return
+  }
+}
+
+const requestCB = (reqName: string, data: any) => {
+  lastRequest.value = reqName
+  isNewFolder.value = lastRequest.value.includes('folder')
+  isNewInputShow.value = true
+  expand.value = true
+  setTimeout(() => {
+    newInputRef.value?.focus()
+  })
+}
+props.tree.addRequestHandler(requestCB)
 </script>
   
 <template>
-  <div @click="_click" class="simple-list-item tree-item" :style="extraStyle" :class="extraClass" tabindex="0" @keypress.enter="editName">
+  <div @click="_click" class="simple-list-item tree-item" :style="extraStyle" :class="extraClass" tabindex="0" @keydown="editName">
     <!-- <div v-if="isLeaf"></div> -->
     <div class="node-item">
       <div v-if="!isLeaf" class="hint" :class="{'hint-expand': expand}">></div>
       <span v-if="!isLeaf">&nbsp;</span>
       <input ref="editorRef" v-if="editMode" type="text"
         v-model="editorInput" class="name-edit"
-        @blur="editQuit" @keydown="keydown">
+        @blur="editNameQuit" @keydown="editNameKD">
       <div v-show="!editMode">{{ tree.title }}</div>
     </div>
   </div>
   <div v-if="expand" class="sub-indent">
     <div class="branch"></div>
+    <input ref="newInputRef" v-if="isNewInputShow" type="text"
+      v-model="newNameRef" class="name-edit"
+      @blur="newInputQuit" @keydown="newInputKD">
     <TreeItem v-for="item in tree.children"
       :tree="item"
       :styleFunc="styleFunc"
       :classFunc="classFunc"
       :click="click"
       :editable="editable"
-      :editCb="editCb" />
+      :editCb="editCb"
+      :requestFinishCb='requestFinishCb'/>
   </div>
 </template>
   

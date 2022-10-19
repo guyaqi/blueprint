@@ -3,33 +3,16 @@ import { computed, ref, watch } from 'vue';
 import store from '../../store';
 import { FsTreeNode } from '../../util/workspace';
 import { BaseTreeNode, BaseTree } from '../../util/datastructure/tree';
-import TreeItem from '../common/TreeItem.vue';
+import TreeItem from '../common/Tree/TreeItem.vue';
 import { workspace } from '../../util/workspace'
 import editor from '../../util/editor';
 import { os } from '../../util/os'
-
-// const service = computed(() => store.state.service)
-
-// const fileTree = ref(null as null|BaseTree<FileTreeNode>)
-// watch(service, async (val) => {
-//   if (!val) {
-//     return
-//   }
-//   fileTree.value = await service.value!.getBpFileTree()
-//   // console.log(fileTree.value);
-// })
+import TreeView from '../common/Tree/TreeView.vue';
 
 // 这里是workspace的主要调用区
 workspace.value.init()
 const title = computed(() => workspace.value.title ? workspace.value.title : '-')
 const srcTree = computed(() => workspace.value.fileTree)
-
-// const styleFunc = (node: BaseTree<BaseTreeNode>) => {
-//   const activate = (node as BaseTree<FsTreeNode>).inner.path === workspace.value.focusPath
-//   return {
-//     'background-color': activate ? '#ffffff44' : undefined,
-//   }
-// }
 
 const classFunc = (node: BaseTree<BaseTreeNode>) => {
   return {
@@ -50,24 +33,58 @@ const titleFilter = (tree: BaseTree<BaseTreeNode>) => {
   return tree.title.endsWith('.json') ? tree.title.slice(0, tree.title.length - 5) : tree.title
 }
 
-const edieCallback = async (tree: BaseTree<BaseTreeNode>, newTitle: string) => {
+const editCallback = async (tree: BaseTree<BaseTreeNode>, newTitle: string) => {
   await os.rename({ path: (tree.inner as FsTreeNode).path, newName: newTitle })
   workspace.value.reload()
 }
 
 const isActionsShow = ref(false)
 
-const newFile = () => {
+const activeDir = (): BaseTree<FsTreeNode> | undefined => {
+  const path = workspace.value.focusPath
+  if (!path) {
+    return undefined
+  }
+  const node = srcTree.value?.findDeep(x => (x as BaseTree<FsTreeNode>).inner.path == path)
+  if (!node) {
+    return undefined
+  }
+  if (node.isLeaf()) {
+    return node.parent
+  }
+  else {
+    return node
+  }
+}
 
+const newFile = () => {
+  const dir = activeDir()
+  console.log('active: ', dir)
+  dir?.request('newfile')
 }
 
 const newFolder = () => {
-  
+  const dir = activeDir()
+  console.log('active: ', dir)
+  dir?.request('newfolder')
 }
 
 const refresh = () => {
-  
+  workspace.value.reload()
 }
+
+const requestFinishCb = (reqName: string, node: BaseTreeNode) => {
+  // console.log(reqName, )
+  const path = (node as FsTreeNode).path
+  if (reqName == 'newfile') {
+    os.fileCreate({ path: `${path}.bp`, })
+  }
+  else {
+    os.folderCreate({ path, })
+  }
+  workspace.value.reload()
+}
+
 </script>
   
 <template>
@@ -80,10 +97,9 @@ const refresh = () => {
         <img class="btn-action" src="../../assets/images/refresh.svg" alt="" @click="refresh">
       </div>
     </div>
-    <div class="class-list" v-if="srcTree" tabindex="0">
-      <TreeItem v-for="item in srcTree.children"
-        :tree="item" :class-func="classFunc"  :click="clickFileTree" :editable="true" :edit-cb="edieCallback"/>
-    </div>
+
+    <TreeView v-if="srcTree"
+      :tree="srcTree" :class-func="classFunc"  :click="clickFileTree" :editable="true" :edit-cb="editCallback" :requestFinishCb='requestFinishCb'/>
   </div>
 
 </template>
@@ -96,15 +112,6 @@ const refresh = () => {
   
 }
 
-.class-list {
-  flex-grow: 1;
-  border: 1px solid transparent;
-  &:focus {
-
-    border: 1px solid dodgerblue;
-    // background-color: red;
-  }
-}
 
 .file-actions {
   margin-left: auto;

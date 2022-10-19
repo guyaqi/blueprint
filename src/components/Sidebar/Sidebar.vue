@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import store from '../../store';
 import { BaseTree, BaseTreeNode } from '../../util/datastructure/tree';
 import LibView from './LibView.vue';
-import SrcView from './SrcView.vue';
+import SrcView from './WorkspaceView.vue';
 
 </script>
   

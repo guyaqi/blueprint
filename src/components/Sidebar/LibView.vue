@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue'
 import store from '../../store';
 import { BaseTree } from '../../util/datastructure/tree';
-import TreeItem from '../common/TreeItem.vue'
+import TreeItem from '../common/Tree/TreeItem.vue'
 
 // defineProps<{ msg: string }>()
 

@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { onMounted, Ref, ref, watch } from 'vue'
-import store from '../../store';
 import { Point } from '../../util/blueprint/math';
 import { BPSType, BPS, BPSInstance } from '../../util/blueprint/slot';
 import BSlotIcon from '../Graph/BSlotIcon.vue';
-import { workspace } from '../../util/workspace'
-import { computed } from '@vue/reactivity';
+import editor from '../../util/editor';
 
 const { instance, } = defineProps<{ instance: BPSInstance }>()
 
@@ -22,7 +20,7 @@ const click = () => {
   if (isLiterial) {
     return
   }
-  workspace.value.oCtx!.clickSlot(instance)
+  editor.value.oCtx!.clickSlot(instance)
 }
 
 const root: Ref<null | HTMLElement> = ref(null)

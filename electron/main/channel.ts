@@ -156,4 +156,17 @@ export function useChannels(webContents: WebContents) {
     fs.renameSync(d.path, newPath)
     e.reply(c, s, null)
   })
+
+  addClientChannel('file-create', (e, c, s, d: { path: string }) => {
+    console.log(`create ${d.path}`)
+    const a = fs.openSync(d.path, 'wx')
+    fs.closeSync(a)
+    e.reply(c, s, null)
+  })
+
+  addClientChannel('folder-create', (e, c, s, d: { path: string }) => {
+    console.log(`create ${d.path}`)
+    fs.mkdirSync(d.path)
+    e.reply(c, s, null)
+  })
 }

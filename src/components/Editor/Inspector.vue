@@ -15,16 +15,13 @@ const bpc = computed(() => bpci.value?.config)
 const addFunction = async () => {
   const name = bpc.value!.newFunctionName()
   const toAdd = new BPN(BPNType.FUNCTION, name, BPS.makeProcessIOPair())
-  // toAdd.remark = struct.value!.name
 
   await popup.value.editFunction(toAdd)
   bpc.value!.functions.push(toAdd)
-  // console.log(struct.value);
 }
 
 const openFunctionContext = (node: BPN) => {
   editor.value.openCtx(node)
-  // store.state.service!.oCtx = BPCtx.fromFunction(node)
 }
 </script>
   

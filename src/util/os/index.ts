@@ -74,6 +74,14 @@ export namespace os {
     'file-rename'
   )
 
+  export const fileCreate = gChnlFunc<{ path: string }, void>(
+    'file-create'
+  )
+
+  export const folderCreate = gChnlFunc<{ path: string }, void>(
+    'folder-create'
+  )
+
   /**
    * 
    * ls

@@ -9,6 +9,8 @@ export interface BaseTreeNode {
   children?: BaseTreeNode[]
 }
 
+type TreeReqHandler = (reqName: string, data: any) => void
+
 export class BaseTree<T extends BaseTreeNode> {
   title: string;
   children?: BaseTree<T>[];
@@ -23,15 +25,25 @@ export class BaseTree<T extends BaseTreeNode> {
     if (node.children) {
       this.children = []
       for (const childNode of node.children as T[]) {
-        this.children.push(new BaseTree(childNode))
+        const child = new BaseTree(childNode)
+        child.parent = this
+        this.children.push(child)
       }
     }
   }
 
   root(): (BaseTree<T> | undefined) {
     let current: (BaseTree<T> | undefined) = this
-    while (current.parent != undefined) {
+    const LIMIT = 100
+    for(let i=0;i<LIMIT;i++) {
+      if (!current || !current.parent) {
+        break
+      }
       current = current.parent
+
+      if (i == LIMIT-1) {
+        throw new Error('tree.root recursion LIMIT reached')
+      }
     }
 
     return current
@@ -100,7 +112,48 @@ export class BaseTree<T extends BaseTreeNode> {
 
     return res
   }
+
+  /**
+   * 
+   * Request
+   * 
+   */
   
+  _reqHandlers: TreeReqHandler[] = []
+  addRequestHandler(h: TreeReqHandler) {
+    this._reqHandlers.push(h)
+  }
+  request(reqName: string, data?: any) {
+    for(const item of this._reqHandlers) {
+      item(reqName, data)
+    }
+  }
+
+  /**
+   * 
+   * FindDeep
+   * 
+   */
+  findDeep(predict: (t: BaseTree<T>) => boolean): BaseTree<T> | undefined {
+    if (predict(this)) {
+      return this
+    }
+    if (this.children !== undefined) {
+      for (const child of this.children) {
+        const res = child.findDeep(predict)
+        if (res !== undefined) {
+          return res
+        }
+      }
+    }
+    return undefined
+  }
+
+  /**
+   * 
+   * Static
+   * 
+   */
 
   static _parseNode<ST extends BaseTreeNode>(
     data: UnknowDataType,
