@@ -10,7 +10,9 @@ async function openWorkspace(webContents: WebContents) {
   const wsPath = filePaths[0]
   // fs.readdir(wsPath)
   // localStorage.setItem('asdasd', wsPath)
-  webContents.send(WORKSPACE_LOAD_CHANNEL, _treeDir(wsPath))
+  webContents.send(WORKSPACE_LOAD_CHANNEL, 0, {
+    tree: _treeDir(wsPath)
+  })
 }
 
 export function initMenu(webContents: WebContents) {

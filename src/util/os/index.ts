@@ -70,6 +70,10 @@ export namespace os {
     'os-exec'
   )
 
+  export const rename = gChnlFunc<{ path: string, newName: string }, void>(
+    'file-rename'
+  )
+
   /**
    * 
    * ls

@@ -6,9 +6,9 @@ import { BPS } from '../../util/blueprint/slot';
 import { BPCtx } from '../../util/blueprint/context';
 import { BPN, BPNType } from '../../util/blueprint/node';
 import { popup } from '../../util/popup'
-import { workspace } from '../../util/workspace'
+import { editor } from '../../util/editor'
 
-const bpci = computed(() => workspace.value.oBPCI)
+const bpci = computed(() => editor.value.oBPCI)
 const bpc = computed(() => bpci.value?.config)
 
 
@@ -23,7 +23,7 @@ const addFunction = async () => {
 }
 
 const openFunctionContext = (node: BPN) => {
-  workspace.value.openCtx(node)
+  editor.value.openCtx(node)
   // store.state.service!.oCtx = BPCtx.fromFunction(node)
 }
 </script>

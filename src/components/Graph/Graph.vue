@@ -10,7 +10,7 @@ import ContentMenu from './ContentMenu.vue';
 import { computed } from '@vue/reactivity';
 import Func from '../GraphNode/Func.vue';
 import ImportantProcess from '../GraphNode/ImportantProcess.vue';
-import { workspace } from '../../util/workspace';
+import { editor } from '../../util/editor';
 import NodeWrapper from '../GraphNode/NodeWrapper.vue';
 
 
@@ -34,7 +34,7 @@ const rootRef = ref(null as (null | HTMLElement))
  * 蓝图相关
  * 
  */
-const context = computed(() => workspace.value.oCtx)
+const context = computed(() => editor.value.oCtx)
 
 /**
  * 

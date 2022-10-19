@@ -58,37 +58,37 @@ export class TextFile extends BaseFile {
   }
 }
 
-export class BpSrcFile extends BaseFile {
+// export class BpSrcFile extends BaseFile {
 
-  static readonly POSTFIX = '.json'
+//   static readonly POSTFIX = '.json'
 
-  // text: string
+//   // text: string
 
-  override get name(): string {
-    const pathArr = this.path.split(/[\\/]/).filter(x => !!x)
-    return pathArr[pathArr.length - 1].slice(0, pathArr.length - BpSrcFile.POSTFIX.length)
-  }
+//   override get name(): string {
+//     const pathArr = this.path.split(/[\\/]/).filter(x => !!x)
+//     return pathArr[pathArr.length - 1].slice(0, pathArr.length - BpSrcFile.POSTFIX.length)
+//   }
 
-  constructor(path: string, buffer: Uint8Array) {
-    super(path, buffer)
-    if (!path.endsWith(BpSrcFile.POSTFIX)) {
-      throw new Error(`SourceFile must has postfix: ${BpSrcFile.POSTFIX}`)
-    }
+//   constructor(path: string, buffer: Uint8Array) {
+//     super(path, buffer)
+//     if (!path.endsWith(BpSrcFile.POSTFIX)) {
+//       throw new Error(`SourceFile must has postfix: ${BpSrcFile.POSTFIX}`)
+//     }
     
-  }
+//   }
 
-  get text(): string {
-    const decoder = new TextDecoder()
-    return decoder.decode(this.buffer)
-  }
+//   get text(): string {
+//     const decoder = new TextDecoder()
+//     return decoder.decode(this.buffer)
+//   }
 
-  set text(value: string) {
-    const encoder = new TextEncoder()
-    this.buffer = encoder.encode(value)
-  }
+//   set text(value: string) {
+//     const encoder = new TextEncoder()
+//     this.buffer = encoder.encode(value)
+//   }
   
 
-  static from(af: BaseFile): BpSrcFile {
-    return new BpSrcFile(af.path, af.buffer)
-  }
-}
+//   static from(af: BaseFile): BpSrcFile {
+//     return new BpSrcFile(af.path, af.buffer)
+//   }
+// }

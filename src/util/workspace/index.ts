@@ -73,6 +73,8 @@ class Workspace {
     return arr[arr.length - 1]
   }
 
+  focusPath?: string
+
   isInited: boolean = false
   fileTree: (null|BaseTree<FsTreeNode>) = null
 
@@ -82,120 +84,42 @@ class Workspace {
     }
 
     // 如果存储了路径，可以主动打开，否则只能等待手动打开
-    if (this.path !== '') {
-      ipcRenderer.send("workspace-load", this.path)
-    }
+    this.reload()
 
     this.eventRegister()
 
     this.isInited = true
   }
 
+  reload() {
+    if (this.path !== '') {
+      ipcRenderer.send("workspace-load", 0, { path: this.path })
+    }
+  }
+
   eventRegister() {
-    ipcRenderer.on("workspace-load", (e: IpcRendererEvent, tree: any) => {
-      this.fileTree = new BaseTree(tree)
-      this.path = tree.path
-    })
-
-    
-  }
-
-  
-
-  /**
-   * 
-   * 蓝图源文件读写
-   * 
-   */
-  oSF: BpSrcFile | null = null
-  oBPCI: BPCI | null = null
-
-
-  // 渲染端想打开某个文件
-  async openSrc(_path: string) {
-    // const buf = ipcRenderer.send('file-load', _path)
-    const f = await os.read({ path: _path})
-    console.log(f)
-    const sf = BpSrcFile.from(f)
-    console.log(sf)
-
-    // already opened
-    if (this.oBPCI && this.oBPCI.config.name == sf.name) {
-      return
-    }
-    
-    if (sf.text === '') {
-      const bpc = new BPC(sf.name, [], [])
-
-      this.oSF = sf
-      this.oBPCI = new BPCI(bpc)
-    }
-    else {
-      this.oSF = sf
-      this.oBPCI = BPCI.fromObj(JSON.parse(sf.text))
-    }
-  }
-
-  // 渲染端想保存某个文件
-  async saveSrc() {
-    console.log('=== save bpc');
-    console.log(this.oBPCI);
-
-    const s = JSON.stringify(this.oBPCI)
-    // console.log(s);
-
-    if (this.oSF == null) {
-      return
-    }
-
-    this.oSF.text = s
-    this.oSF.save()
-  }
-
-
-  /**
-   * 
-   * 上下文相关
-   * 
-   */
-
-  // 打开的上下文
-  private _octx: (null|BPCtx) = null
-  get oCtx(): (null|BPCtx) {
-    return this._octx
-  }
-
-  // 在某个蓝图类实例上，打开某个上下文
-  async openCtx(node: BPN) {
-    if (!this.oBPCI) {
-      shell.error('no bpci opened', 'openCtx')
-      return
-    }
-    if (this.oBPCI.config.functions.indexOf(node) < 0) {
-      shell.error('上下文打开失败, 选定的节点不是蓝图的子项', 'openCtx')
-    }
-
-    // already opened
-    if (this._octx && this._octx.name == node.name) {
-      return
-    }
-
-    // 查询保存的上下文
-    let exist = false
-    for (const ctx of this.oBPCI?.contexts!) {
-      if (ctx.name == node.name) {
-        this._octx = ctx
-        shell.debug('载入上下文')
-        exist = true
-        break
+    const defaultSort = (tree: FsTreeNode) => {
+      if (tree.children) {
+        tree.children.sort((a, b) => {
+          if (a.children!==undefined && b.children===undefined) {
+            return -1
+          }
+          else if (a.children===undefined && b.children!==undefined) {
+            return 1
+          }
+          else {
+            return a.title.localeCompare(b.title)
+          }
+        })
       }
     }
-    if (!exist) {
-      shell.debug('创建新的上下文')
-      this._octx = BPCtx.fromFunction(node)
-      this.oBPCI!.contexts.push(this._octx)
-    }
+    ipcRenderer.on("workspace-load", (e: IpcRendererEvent, s:number, d: { tree: FsTreeNode }) => {
+      defaultSort(d.tree)
+      this.fileTree = new BaseTree(d.tree)
+      this.path = d.tree.path
+    })
   }
+
 }
 
 export const workspace = ref(new Workspace())

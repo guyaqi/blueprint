@@ -4,6 +4,8 @@ import { readdirSync, readFileSync } from "original-fs";
 import path from 'path'
 import child_process from 'child_process'
 
+export const WORKSPACE_LOAD_CHANNEL = 'workspace-load'
+
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 
 /**
@@ -59,14 +61,6 @@ export const _treeDir = (_path: string): FsTreeNode => {
  */
 
 
-export const WORKSPACE_LOAD_CHANNEL = 'workspace-load'
-const workspaceLoad = async (e: IpcMainEvent, path: string) => {
-  if (!isDir(path)) {
-    console.log('workspaceLoad failed')
-    return
-  }
-  e.reply(WORKSPACE_LOAD_CHANNEL, _treeDir(path))
-}
 
 const FILE_SAVE_CHANNEL = 'file-save'
 const fileSave = async (e: IpcMainEvent, path: string, buf: Buffer) => {
@@ -91,11 +85,31 @@ function addClientChannel(channel: string, cb: (e: IpcMainEvent, channel: string
 
 export function useChannels(webContents: WebContents) {
 
-  ipcMain.on(WORKSPACE_LOAD_CHANNEL, workspaceLoad)
+  // ipcMain.on(WORKSPACE_LOAD_CHANNEL, workspaceLoad)
 
   ipcMain.on(FILE_SAVE_CHANNEL, fileSave)
 
   ipcMain.on(HTTP_CHANNEL, httpRequest)
+
+  
+  
+  // const workspaceLoad = async (e: IpcMainEvent, path: string) => {
+  //   if (!isDir(path)) {
+  //     console.log('workspaceLoad failed')
+  //     return
+  //   }
+  //   e.reply(WORKSPACE_LOAD_CHANNEL, _treeDir(path))
+  // }
+
+  addClientChannel('workspace-load', (e, c, s, d: { path: string }) => {
+    if (!isDir(d.path)) {
+      console.log('workspaceLoad failed')
+      return
+    }
+    e.reply(c, s, {
+      tree: _treeDir(d.path)
+    })
+  })
 
   addClientChannel('file-load', (e, c, s, d: { path: string }) => {
     e.reply(c, s, {
@@ -131,5 +145,15 @@ export function useChannels(webContents: WebContents) {
     e.reply(c, s, {
       stdout: text
     })
+  })
+
+  addClientChannel('file-rename', (e, c, s, d: { path: string, newName: string }) => {
+    
+    const pathArr = d.path.split(/[\\|/]/).filter(x => x!='')
+    const newPathArr = pathArr.slice(0, pathArr.length - 1).concat([d.newName])
+    const newPath = newPathArr.join(path.sep)
+    console.log(`rename ${d.path} to ${newPath}`)
+    fs.renameSync(d.path, newPath)
+    e.reply(c, s, null)
   })
 }

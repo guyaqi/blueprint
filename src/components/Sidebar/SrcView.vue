@@ -5,6 +5,8 @@ import { FsTreeNode } from '../../util/workspace';
 import { BaseTreeNode, BaseTree } from '../../util/datastructure/tree';
 import TreeItem from '../common/TreeItem.vue';
 import { workspace } from '../../util/workspace'
+import editor from '../../util/editor';
+import { os } from '../../util/os'
 
 // const service = computed(() => store.state.service)
 
@@ -20,15 +22,14 @@ import { workspace } from '../../util/workspace'
 // 这里是workspace的主要调用区
 workspace.value.init()
 const title = computed(() => workspace.value.title ? workspace.value.title : '-')
-const srcTree = computed(() => workspace.value.fileTree?.child('src'))
+const srcTree = computed(() => workspace.value.fileTree)
 
-const styleFunc = (node: BaseTree<BaseTreeNode>) => {
-  const isStaff = node.title == 'Staff'
-  return {
-    'background-color': isStaff ? 'white' : undefined,
-    'color': isStaff ? 'black' : undefined,
-  }
-}
+// const styleFunc = (node: BaseTree<BaseTreeNode>) => {
+//   const activate = (node as BaseTree<FsTreeNode>).inner.path === workspace.value.focusPath
+//   return {
+//     'background-color': activate ? '#ffffff44' : undefined,
+//   }
+// }
 
 const classFunc = (node: BaseTree<BaseTreeNode>) => {
   return {
@@ -39,22 +40,49 @@ const classFunc = (node: BaseTree<BaseTreeNode>) => {
 
 const clickFileTree = async (item: BaseTree<FsTreeNode>) => {
   
-  if (item.inner.isDir) {
-    return
+  workspace.value.focusPath = item.inner.path
+  if (!item.inner.isDir) {
+    editor.value.openFile(item.inner.path)
   }
-  
-  workspace.value?.openSrc(item.inner.path)
 }
 
-const titleFilter = (s: string) => s.endsWith('.json') ? s.slice(0, s.length - 5) : s
+const titleFilter = (tree: BaseTree<BaseTreeNode>) => {
+  return tree.title.endsWith('.json') ? tree.title.slice(0, tree.title.length - 5) : tree.title
+}
+
+const edieCallback = async (tree: BaseTree<BaseTreeNode>, newTitle: string) => {
+  await os.rename({ path: (tree.inner as FsTreeNode).path, newName: newTitle })
+  workspace.value.reload()
+}
+
+const isActionsShow = ref(false)
+
+const newFile = () => {
+
+}
+
+const newFolder = () => {
+  
+}
+
+const refresh = () => {
+  
+}
 </script>
   
 <template>
-  <div class="src-view-root">
-    <div class="head">{{ title }}</div>
-    <div class="class-list" v-if="srcTree">
+  <div class="src-view-root" @mouseenter="isActionsShow=true" @mouseleave="isActionsShow=false">
+    <div class="head">
+      <div>{{ title }}</div>
+      <div class="file-actions" v-show="isActionsShow">
+        <img class="btn-action mr-1" src="../../assets/images/new_file.svg" alt="" @click="newFile">
+        <img class="btn-action mr-1" src="../../assets/images/new_folder.svg" alt="" @click="newFolder">
+        <img class="btn-action" src="../../assets/images/refresh.svg" alt="" @click="refresh">
+      </div>
+    </div>
+    <div class="class-list" v-if="srcTree" tabindex="0">
       <TreeItem v-for="item in srcTree.children"
-        :tree="item" :class-func="classFunc" :style-func="styleFunc" :click="clickFileTree" :titleFilter="titleFilter" />
+        :tree="item" :class-func="classFunc"  :click="clickFileTree" :editable="true" :edit-cb="edieCallback"/>
     </div>
   </div>
 
@@ -65,10 +93,23 @@ const titleFilter = (s: string) => s.endsWith('.json') ? s.slice(0, s.length - 5
   flex-grow: 1;
   display: flex;
   flex-flow: column;
+  
 }
 
 .class-list {
   flex-grow: 1;
+  border: 1px solid transparent;
+  &:focus {
+
+    border: 1px solid dodgerblue;
+    // background-color: red;
+  }
+}
+
+.file-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
 }
 </style>
   

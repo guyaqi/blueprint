@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <rect width="24" height="24" id="artboard_1" />
+    <clipPath id="clip_1">
+      <use xlink:href="#artboard_1" clip-rule="evenodd" />
+    </clipPath>
+  </defs>
+  <g id="new_file" clip-path="url(#clip_1)">
+    <path d="M18.035 11.3865L18.035 7.91049L14.1245 4L5 4L5 19.642L10.6485 19.642" id="行间距" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" stroke-linecap="square" artboard="d17720b0-0503-4778-9d02-21f3e19599d1" />
+    <path d="M12.3865 4L12.3865 9.21399L18.035 9.21399" id="行间距-2" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" stroke-linecap="square" artboard="47b0d988-59fb-4f71-832a-6a10bfe94224" />
+    <path d="M14.1245 17.904L21 17.904" id="行间距-3" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" stroke-linecap="square" artboard="72f1b7ed-54b0-421a-b91d-1a61b7241357" />
+    <path d="M17.6005 14.428L17.6005 21.38" id="行间距-4" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" stroke-linecap="square" artboard="596fe69b-3783-47d0-88d2-2d6629af971e" />
+  </g>
+</svg>

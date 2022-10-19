@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <rect width="24" height="24" id="artboard_1" />
+    <clipPath id="clip_1">
+      <use xlink:href="#artboard_1" clip-rule="evenodd" />
+    </clipPath>
+  </defs>
+  <g id="refresh" clip-path="url(#clip_1)">
+    <path d="M15 7C17.8119 8.22752 18.6201 10.9515 18.6001 13.508C18.5801 16.0645 16.8502 19.5 12 19.5C7.14988 19.5 5.5 15.8765 5.5 13C5.5 10.1235 7.39813 8.12249 9.00001 7.5" id="矢量图" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" artboard="f7ccacfd-9493-49fb-8358-21a360a36565" />
+    <path d="M5.96 7.36L9.18001 7.36L9.2 10.58" id="行间距" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" stroke-linecap="square" artboard="430ed6b6-dcf7-4a96-8513-d16b24d09577" />
+  </g>
+</svg>

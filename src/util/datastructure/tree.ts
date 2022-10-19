@@ -60,7 +60,7 @@ export class BaseTree<T extends BaseTreeNode> {
   }
 
   isLeaf() {
-    return !this.children || this.children.length == 0
+    return this.children === undefined
   }
 
   tree(): string {
