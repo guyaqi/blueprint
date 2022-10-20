@@ -3,7 +3,7 @@ import { onMounted, Ref, ref, watch } from 'vue'
 import { Point } from '../../util/blueprint/math';
 import { BPSType, BPS, BPSInstance } from '../../util/blueprint/slot';
 import BSlotIcon from '../Graph/BSlotIcon.vue';
-import editor from '../../util/editor';
+import { editor } from '../../util/editor';
 
 const { instance, } = defineProps<{ instance: BPSInstance }>()
 

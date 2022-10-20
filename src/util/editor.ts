@@ -30,6 +30,7 @@ class Inspector {
     if (path == this.path) {
       return false
     }
+    this.path = path
 
     const f = await os.read({ path, })
     const sf = TextFile.from(f)
@@ -98,6 +99,7 @@ class Editor {
    * Open files
    * 
    */
+  static readonly SUB_FILE_SEP = '>'
   
   async openFile(path: string) {
     const foundIndex = this.findInTabs(path)
@@ -107,9 +109,10 @@ class Editor {
       return
     }
     else {
-      const isSubFile = path.includes(':')
+      const isSubFile = path.includes(Editor.SUB_FILE_SEP)
+      console.log(path)
       if (isSubFile) {
-        const sepIndex = path.indexOf(':')
+        const sepIndex = path.indexOf(Editor.SUB_FILE_SEP)
         const truePath = path.slice(0, sepIndex)
         const subPath = path.slice(sepIndex + 1)
         if (!truePath.endsWith('.bp')) {
@@ -174,24 +177,22 @@ class Editor {
    * 蓝图源文件读写
    * 
    */
-  oSF: TextFile | null = null
-  oBPCI: BPCI | null = null
 
 
   // 渲染端想保存某个文件
   async saveSrc() {
-    console.log('=== save bpc');
-    console.log(this.oBPCI);
+    // console.log('=== save bpc');
+    // console.log(this.oBPCI);
 
-    const s = JSON.stringify(this.oBPCI)
-    // console.log(s);
+    // const s = JSON.stringify(this.oBPCI)
+    // // console.log(s);
 
-    if (this.oSF == null) {
-      return
-    }
+    // if (this.oSF == null) {
+    //   return
+    // }
 
-    this.oSF.text = s
-    this.oSF.save()
+    // this.oSF.text = s
+    // this.oSF.save()
   }
 
 
@@ -202,10 +203,10 @@ class Editor {
   */
 
   // 打开的上下文
-  private _octx: (null|BPCtx) = null
-  get oCtx(): (null|BPCtx) {
-    return this._octx
-  }
+  // private _octx: (null|BPCtx) = null
+  // get oCtx(): (null|BPCtx) {
+  //   return this._octx
+  // }
 }
 
 export const editor = ref(new Editor())

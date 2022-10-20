@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { editor } from '../../util/editor';
 import { ref, watch, computed } from 'vue'
 import Graph from '../Graph/Graph.vue';
 import Inspector from './Inspector.vue';
 import TabView from './TabView.vue';
+import TextEdit from './TextEdit.vue';
 
 // const workspaceHandler = computed(() => store.state.workspaceHandler)
 
@@ -14,6 +16,7 @@ import TabView from './TabView.vue';
 //     }
 //   }
 // })
+const tab = computed(() => editor.value.tab)
 
 </script>
   
@@ -28,7 +31,8 @@ import TabView from './TabView.vue';
       <div class="head">
         <TabView />
       </div>
-      <Graph />
+      <Graph v-if="tab && tab.isBp && tab.context" :context="tab.context" />
+      <TextEdit v-else-if="tab && !tab.isBp && tab.file" :title="tab.title" :file="tab.file" />
     </div>
   </div>
 </template>
@@ -37,8 +41,7 @@ import TabView from './TabView.vue';
 .editor {
   flex-grow: 1;
   display: flex;
-  // align-items: center;
-  // justify-content: center;
+  height: calc(100% - 240px);
   background-color: #202124;
 }
 
@@ -56,9 +59,5 @@ import TabView from './TabView.vue';
   height: 100%;
 }
 
-.close-icon {
-  margin-right: -8px;
-  margin-left: 8px;
-}
 </style>
   

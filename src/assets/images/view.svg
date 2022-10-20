@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <path d="M9 13C9 11.3431 10.3431 10 12 10C13.6569 10 15 11.3431 15 13C15 14.6569 13.6569 16 12 16C10.3431 16 9 14.6569 9 13Z" id="path_1" />
+    <rect width="24" height="24" id="artboard_1" />
+    <clipPath id="clip_1">
+      <use xlink:href="#artboard_1" clip-rule="evenodd" />
+    </clipPath>
+    <clipPath id="clip_2">
+      <use xlink:href="#path_1" />
+    </clipPath>
+  </defs>
+  <g id="view" clip-path="url(#clip_1)">
+    <path d="M5 13C7.0485 11.1305 8.59152 8.99999 12 8.99999C15.4085 8.99999 17.114 11.1845 19 13C17.146 14.6355 14.9515 17 12 17C9.0485 17 6.9915 14.9695 5 13Z" id="矢量图" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" artboard="8c5e9436-ac3d-4c0c-9a04-233e6378061e" />
+    <path d="M5.64 9L7 10.36" id="行间距" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" stroke-linecap="square" artboard="3d510a53-b056-45c2-9785-513a7e0db5a7" />
+    <path d="M18.5 9L17 10.4" id="行间距-2" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" stroke-linecap="square" artboard="70cc537f-2e60-4f08-a874-1b35b9abda5e" />
+    <path d="M12 6.5L12 8.68" id="行间距-3" fill="none" fill-rule="evenodd" stroke="#FFFFFF" stroke-width="1" stroke-linecap="square" artboard="547d20c7-fe87-437e-9ef3-1265b15f19ee" />
+    <g id="椭圆" artboard="5fa104fd-4a83-4ca8-b077-3285443163a7">
+      <g clip-path="url(#clip_2)">
+        <use xlink:href="#path_1" fill="none" stroke="#FFFFFF" stroke-width="2" />
+      </g>
+    </g>
+  </g>
+</svg>

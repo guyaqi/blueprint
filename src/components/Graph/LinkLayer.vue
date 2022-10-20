@@ -2,7 +2,7 @@
 import { computed } from '@vue/reactivity';
 import { onMounted, ref, watch } from 'vue'
 import { useMousePosOnCanvas } from '../../util/hooks'
-import editor from '../../util/editor';
+import { editor } from '../../util/editor';
 
 const context = computed(() => editor.value.oCtx)
 const paths = computed(() => context.value?.links.map(x => x.pathString))

@@ -5,7 +5,7 @@ import { FsTreeNode } from '../../util/workspace';
 import { ActionNode, BaseNode, Tree } from '../../util/datastructure/tree';
 import TreeItem from '../common/Tree/TreeItem.vue';
 import { workspace } from '../../util/workspace'
-import editor from '../../util/editor';
+import { editor } from '../../util/editor';
 import { os } from '../../util/os'
 import TreeView from '../common/Tree/TreeView.vue';
 import { popup, PopupResult } from '../../util/popup';

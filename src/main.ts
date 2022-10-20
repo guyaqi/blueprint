@@ -9,8 +9,8 @@ import './style/text.scss'
 import './style/form.scss'
 import './style/node.scss'
 
-import { ipcRenderer } from 'electron'
-import store from './store'
+// import hljs from 'highlight.js'
+import 'highlight.js/styles/monokai-sublime.css' 
 
 /**
  * If you enables use of Node.js API in the Renderer-process
@@ -21,8 +21,17 @@ import store from './store'
  */
 // import './samples/node-api'
 
-createApp(App)
-  .mount('#app')
+const app = createApp(App)
+
+// app.directive('highlight', function (el) {
+//   // const blocks = el.querySelectorAll('pre code');
+//   // blocks.forEach((block: any) => {
+//   //   hljs.highlightBlock(block)
+//   // })
+//   hljs.highlightBlock(el)
+// })
+
+app.mount('#app')
   .$nextTick(() => {
     postMessage({ payload: 'removeLoading' }, '*')
   })

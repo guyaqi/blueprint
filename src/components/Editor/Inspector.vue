@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity';
 import { ref } from 'vue'
-import store from '../../store';
 import { BPS } from '../../util/blueprint/slot';
-import { BPCtx } from '../../util/blueprint/context';
 import { BPN, BPNType } from '../../util/blueprint/node';
 import { popup } from '../../util/popup'
-import { editor } from '../../util/editor'
+import { editor, inspector } from '../../util/editor'
 
-const bpci = computed(() => editor.value.oBPCI)
+const bpci = computed(() => inspector.value.blueprint)
 const bpc = computed(() => bpci.value?.config)
 
 
@@ -20,8 +18,11 @@ const addFunction = async () => {
   bpc.value!.functions.push(toAdd)
 }
 
-const openFunctionContext = (node: BPN) => {
-  editor.value.openCtx(node)
+const openFunctionContext = (name: string) => {
+  
+  const path = `${inspector.value.path}>${name}`
+
+  editor.value.openFile(path)
 }
 
 /* function scope */
@@ -49,7 +50,7 @@ const mouseInFunctionScope = ref(false)
       <div v-if="!bpc!.functions.length" class="simple-list-item name-function">--</div>
       <div v-else class="scroll-appearance scope-list">
         <div>
-          <div v-for="node in bpc!.functions" class="simple-list-item name-function click hover-hl" @click="openFunctionContext(node)">{{ node.name }}</div>
+          <div v-for="node in bpc!.functions" class="simple-list-item name-function click hover-hl" @dblclick="openFunctionContext(node.name)">{{ node.name }}</div>
         </div>
       </div>
       

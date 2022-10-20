@@ -12,6 +12,7 @@ import Func from '../GraphNode/Func.vue';
 import ImportantProcess from '../GraphNode/ImportantProcess.vue';
 import { editor } from '../../util/editor';
 import NodeWrapper from '../GraphNode/NodeWrapper.vue';
+import { BPCtx } from 'src/util/blueprint/context';
 
 
 const mouseup = (e: MouseEvent) => {
@@ -34,7 +35,10 @@ const rootRef = ref(null as (null | HTMLElement))
  * 蓝图相关
  * 
  */
-const context = computed(() => editor.value.oCtx)
+const { context, } = defineProps<{
+  context: BPCtx
+}>()
+// const context = computed(() => editor.value.oCtx)
 
 /**
  * 

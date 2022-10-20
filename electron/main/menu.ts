@@ -42,6 +42,9 @@ export function initMenu(webContents: WebContents) {
         { role: 'togglefullscreen' }
       ]
     },
+    {
+      role: 'reload'
+    }
   ]
 
   const menu = Menu.buildFromTemplate(template as any)

@@ -69,6 +69,7 @@ onMounted(() => {
   .under-menubar {
     flex-grow: 1;
     width: 100vw;
+    height: calc(100% - 24px);
     background: var(--color-bg);
 
     display: flex;
@@ -78,5 +79,6 @@ onMounted(() => {
     display: flex;
     flex-flow: column;
     flex-grow: 1;
+    height: 100%;
   }
 </style>
