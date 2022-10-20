@@ -8,6 +8,7 @@ import { workspace } from '../../util/workspace'
 import editor from '../../util/editor';
 import { os } from '../../util/os'
 import TreeView from '../common/Tree/TreeView.vue';
+import { popup, PopupResult } from '../../util/popup';
 
 // 这里是workspace的主要调用区
 workspace.value.init()
@@ -52,7 +53,7 @@ const activeDir = (): Tree<FsTreeNode> | undefined => {
     }
   }
   else {
-    const node = srcTree.value?.findDeep(x => (x as Tree<FsTreeNode>).inner.path == path)
+    const node = srcTree.value?.findDeep((x: Tree<FsTreeNode>) => x.inner.path == path)
     if (!node) {
       res = undefined
     }
@@ -101,8 +102,8 @@ const createCb = (from: Tree<BaseNode>, newName: string) => {
 }
 
 const deleteTree = async (tree: Tree<BaseNode>): Promise<void> => {
-  const res = window.confirm(`Are you sure want to delete: "${tree.title}"`)
-  if (res) {
+  const res = await popup.value.confirm(`Are you sure want to delete: "${tree.title}"`)
+  if (res == PopupResult.Yes) {
     const path = (tree.inner as FsTreeNode).path
     console.log(`delete: ${path}`)
     await os.rm({ path, })

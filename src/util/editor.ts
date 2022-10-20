@@ -4,16 +4,167 @@ import { BPN } from "./blueprint/node"
 import { BPC, BPCI } from "./blueprint/struct"
 import { shell } from "./logger"
 import { os } from "./os"
-import { TextFile } from "./os/file"
+import { BaseFile, TextFile } from "./os/file"
+import { popup } from "./popup"
 // import { workspace } from './workspace'
 
+type FileTab = {
+  title: string
+  path: string
+
+  isBp: boolean
+
+  // isBp == true
+  context?: BPCtx
+
+  // isBp == false
+  file?: BaseFile
+}
+
+class Inspector {
+  file?: TextFile
+  blueprint?: BPCI
+  path?: string
+
+  async open(path: string) {
+    if (path == this.path) {
+      return false
+    }
+
+    const f = await os.read({ path, })
+    const sf = TextFile.from(f)
+    
+    if (sf.text === '') {
+      const bpc = new BPC(sf.name, [], [])
+
+      this.file = sf
+      this.blueprint = new BPCI(bpc)
+    }
+    else {
+      this.file = sf
+      this.blueprint = BPCI.fromObj(JSON.parse(sf.text))
+    }
+
+    return true
+  }
+
+  // 在某个蓝图类实例上，打开某个上下文
+  async getCtx(ctxName: string): Promise<BPCtx | undefined> {
+    if (!this.blueprint) {
+      return undefined
+    }
+    const ctx = this.blueprint.contexts.find(x => x.name == ctxName)
+    if (ctx === undefined) {
+      throw new Error('Inspector.getCtx: node === undefined')
+    }
+
+    return ctx
+  }
+
+  createCtx() {
+    // if (!exist) {
+    //   shell.debug('创建新的上下文')
+    //   this._octx = BPCtx.fromFunction(node)
+    //   this.oBPCI!.contexts.push(this._octx)
+    // }
+  }
+}
+
+export const inspector = ref(new Inspector())
+
 class Editor {
-  files: any[] = []
-  current?: any
+
+  /**
+   * 
+   * All about tabs
+   * 
+   */
+
+  tabs: FileTab[] = []
+  tabIndex: number = -1
+  get tab(): FileTab|undefined {
+    if (this.tabIndex >= 0 && this.tabIndex < this.tabs.length) {
+      return this.tabs[this.tabIndex]
+    }
+    return undefined
+  }
+
+  findInTabs(path: string): number {
+    return this.tabs.findIndex(x => x.path == path)
+  }
+
+  /**
+   * 
+   * Open files
+   * 
+   */
   
-  openFile(path: string) {
-    if(path.endsWith('.bp')) {
-      this.openSrc(path)
+  async openFile(path: string) {
+    const foundIndex = this.findInTabs(path)
+    if (foundIndex >= 0) {
+      this.tabIndex = foundIndex
+      await this._openCurrent()
+      return
+    }
+    else {
+      const isSubFile = path.includes(':')
+      if (isSubFile) {
+        const sepIndex = path.indexOf(':')
+        const truePath = path.slice(0, sepIndex)
+        const subPath = path.slice(sepIndex + 1)
+        if (!truePath.endsWith('.bp')) {
+          throw new Error('now only bp subpath is supported')
+        }
+        await inspector.value.open(truePath)
+        const newTab: FileTab = {
+          title: subPath,
+          path,
+          isBp: true,
+        }
+        this.tabs.push(newTab)
+        this.tabIndex = this.tabs.length-1
+        await this._openCurrent()
+        return
+      }
+      else {
+        // if open new bp, no tab is added, inspector is lauched
+        if (path.endsWith('.bp')) {
+          const openNew = await inspector.value.open(path)
+          if (openNew) {
+            this.tabIndex = -1
+          }
+        }
+        // open new simple text file
+        else {
+          const pathArr = path.split(/[\\|/]/).filter(x => x!='')
+          const newTab: FileTab = {
+            title: pathArr[pathArr.length-1],
+            path,
+            isBp: false,
+          }
+          this.tabs.push(newTab)
+          this.tabIndex = this.tabs.length-1
+          await this._openCurrent()
+          return
+        }
+      }
+      
+      
+    }
+  }
+
+  private async _openCurrent() {
+    // 根据isBp为当前tab添加context或者basefile
+    const tab = this.tab
+    if (!tab) {
+      return
+    }
+    // 打开蓝图上下文时，会假设inspector已经正确切换
+    if (tab.isBp) {
+      tab.context = await inspector.value.getCtx(tab.title)
+    }
+    else {
+      tab.file = await os.read({ path: tab.path })
     }
   }
 
@@ -23,31 +174,9 @@ class Editor {
    * 蓝图源文件读写
    * 
    */
-   oSF: TextFile | null = null
-   oBPCI: BPCI | null = null
- 
-  // 渲染端想打开某个文件
-  async openSrc(_path: string) {
-    // const buf = ipcRenderer.send('file-load', _path)
-    const f = await os.read({ path: _path})
-    const sf = TextFile.from(f)
+  oSF: TextFile | null = null
+  oBPCI: BPCI | null = null
 
-    // already opened
-    if (this.oBPCI && this.oBPCI.config.name == sf.name) {
-      return
-    }
-    
-    if (sf.text === '') {
-      const bpc = new BPC(sf.name, [], [])
-
-      this.oSF = sf
-      this.oBPCI = new BPCI(bpc)
-    }
-    else {
-      this.oSF = sf
-      this.oBPCI = BPCI.fromObj(JSON.parse(sf.text))
-    }
-  }
 
   // 渲染端想保存某个文件
   async saveSrc() {
@@ -77,39 +206,6 @@ class Editor {
   get oCtx(): (null|BPCtx) {
     return this._octx
   }
-
-  // 在某个蓝图类实例上，打开某个上下文
-  async openCtx(node: BPN) {
-    if (!this.oBPCI) {
-      shell.error('no bpci opened', 'openCtx')
-      return
-    }
-    if (this.oBPCI.config.functions.indexOf(node) < 0) {
-      shell.error('上下文打开失败, 选定的节点不是蓝图的子项', 'openCtx')
-    }
-
-    // already opened
-    if (this._octx && this._octx.name == node.name) {
-      return
-    }
-
-    // 查询保存的上下文
-    let exist = false
-    for (const ctx of this.oBPCI?.contexts!) {
-      if (ctx.name == node.name) {
-        this._octx = ctx
-        shell.debug('载入上下文')
-        exist = true
-        break
-      }
-    }
-    if (!exist) {
-      shell.debug('创建新的上下文')
-      this._octx = BPCtx.fromFunction(node)
-      this.oBPCI!.contexts.push(this._octx)
-    }
-  }
 }
 
 export const editor = ref(new Editor())
-export default editor

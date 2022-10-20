@@ -5,15 +5,7 @@
 
 import { IpcRendererEvent } from "electron"
 import { ref } from "vue"
-import { BPCtx } from "../blueprint/context"
-import { BPN } from "../blueprint/node"
-import { BPC, BPCI } from "../blueprint/struct"
-import { Tree, BaseNode } from "../datastructure/tree"
-import { shell } from "../logger"
-import { useLocalStorage } from '@vueuse/core'
-import { BpSrcFile } from "../os/file"
-import { BaseFile } from "../os/file"
-import { os } from "../os"
+import { Tree, BaseNode } from "./datastructure/tree"
 
 //   if (handle.kind === 'file') {
 //     // run file code

@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue'
 import Graph from '../Graph/Graph.vue';
 import Inspector from './Inspector.vue';
+import TabView from './TabView.vue';
 
 // const workspaceHandler = computed(() => store.state.workspaceHandler)
 
@@ -25,17 +26,7 @@ import Inspector from './Inspector.vue';
     <Inspector />
     <div class="main">
       <div class="head">
-        <!-- <div class="head-tab">
-          <div class="name-class">DB Connection</div>
-          <div>.</div>
-          <div class="name-function">Connect</div>
-        </div> -->
-        <div class="head-tab head-tab-active">
-          <div class="name-class">PublicIp</div>
-          <div>.</div>
-          <div class="name-function">main</div>
-          <img class="head-icon close-icon" src="../../assets/images/tips_close.svg" alt="">
-        </div>
+        <TabView />
       </div>
       <Graph />
     </div>

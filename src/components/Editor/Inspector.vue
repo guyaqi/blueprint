@@ -23,6 +23,9 @@ const addFunction = async () => {
 const openFunctionContext = (node: BPN) => {
   editor.value.openCtx(node)
 }
+
+/* function scope */
+const mouseInFunctionScope = ref(false)
 </script>
   
 <template>
@@ -31,15 +34,15 @@ const openFunctionContext = (node: BPN) => {
     
     <div class="member-scope">
       <div class="head">
-        <div><span class="name-member">members</span></div>
+        <div><span class="name-member">members(NOT IMPLEMENTED)</span></div>
       </div>
       <div class="simple-list-item name-member">--</div>
     </div>
 
-    <div class="function-scope">
+    <div class="function-scope" @mouseenter="mouseInFunctionScope=true" @mouseleave="mouseInFunctionScope=false">
       <div class="head">
         <span class="name-function">function</span>
-        <div class="btn-action push-right" @click="addFunction">
+        <div class="btn-action push-right" @click="addFunction" v-show="mouseInFunctionScope">
           <img src="../../assets/images/add.svg" alt="">
         </div>
       </div>
@@ -54,7 +57,7 @@ const openFunctionContext = (node: BPN) => {
     </div>
 
     <div class="local-scope">
-      <div class="head"><span class="name-local">local</span></div>
+      <div class="head"><span class="name-local">local(NOT IMPLEMENTED)</span></div>
       <div class="simple-list-item name-local">--</div>
     </div>
   </div>
