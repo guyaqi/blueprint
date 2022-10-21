@@ -1,14 +1,10 @@
 import { ref } from "vue"
 import { BPCtx } from "./blueprint/context"
-import { BPN } from "./blueprint/node"
 import { BPC, BPCI } from "./blueprint/struct"
-import { shell } from "./logger"
 import { os } from "./os"
 import { BaseFile, TextFile } from "./os/file"
-import { popup } from "./popup"
-// import { workspace } from './workspace'
 
-type FileTab = {
+export type FileTab = {
   title: string
   path: string
 
@@ -62,6 +58,12 @@ class Inspector {
     return ctx
   }
 
+  close() {
+    this.file = undefined
+    this.blueprint = undefined
+    this.path = undefined
+  }
+
   createCtx() {
     // if (!exist) {
     //   shell.debug('创建新的上下文')
@@ -82,7 +84,17 @@ class Editor {
    */
 
   tabs: FileTab[] = []
-  tabIndex: number = -1
+  // tabIndex: number = -1
+  _tabIndex: number = -1
+  get tabIndex(): number {
+    return this._tabIndex
+  }
+  set tabIndex(val: number) {
+    if (!this.tabs[val].isBp) {
+      inspector.value.close()
+    }
+    this._tabIndex = val
+  }
   get tab(): FileTab|undefined {
     if (this.tabIndex >= 0 && this.tabIndex < this.tabs.length) {
       return this.tabs[this.tabIndex]
@@ -164,13 +176,31 @@ class Editor {
     }
     // 打开蓝图上下文时，会假设inspector已经正确切换
     if (tab.isBp) {
+      if (tab.context) {
+        return
+      }
       tab.context = await inspector.value.getCtx(tab.title)
     }
     else {
+      if (tab.file) {
+        return
+      }
       tab.file = await os.read({ path: tab.path })
     }
   }
 
+  close(index: number) {
+    this.tabs.splice(index, 1)
+    if (this.tabs[this.tabIndex - 1]) {
+      this.tabIndex -= 1
+    }
+    else if (this.tabs[this.tabIndex + 1]) {
+      this.tabIndex += 1
+    }
+    else {
+      this.tabIndex = -1
+    }
+  }
   
   /**
    * 

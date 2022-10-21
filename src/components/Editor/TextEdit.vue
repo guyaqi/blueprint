@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { BaseFile, TextFile } from '../../util/os/file';
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, Ref, ref } from 'vue'
 import hljs from 'highlight.js'
+import { FileTab } from '../../util/editor'
 
-const pp = defineProps<{ file: BaseFile, title: string }>()
+const pp = defineProps<{ tab: FileTab }>()
 
-const tf = TextFile.from(pp.file)
-const text = tf.text
+const tf: Ref<TextFile|null> = ref(null)
+const text = computed(() => tf.value?.text)
 const lino = ref('')
 
 const linoEl = ref(null as (null | HTMLElement))
@@ -35,8 +36,11 @@ const getLangFromName = (n: string): string => {
 }
 
 onMounted(() => {
+  console.log('onmount')
+  tf.value = TextFile.from(pp.tab.file!)
+
   let lines = 0
-  for (const c of text) {
+  for (const c of text.value || '') {
     if (c == '\n') {
       lines += 1
     }
@@ -47,14 +51,20 @@ onMounted(() => {
   lino.value += `${lines+1}\n`
 
   // highlight
-  classList.value.push(getLangFromName(pp.title))
+  classList.value.push(getLangFromName(pp.tab.title))
   setTimeout(() => {
-    hljs.highlightBlock(codeEl.value!)
+    console.log('again')
+    hljs.highlightElement(codeEl.value!)
   })
 
+  // set icon width
   setTimeout(() => {
     const w = linoEl.value!.getBoundingClientRect().width
     linoWidth.value = w
+  })
+
+  setTimeout(() => {
+    console.log(tf.value)
   })
 })
 </script>
@@ -65,7 +75,7 @@ onMounted(() => {
       <div class="view-icon" :style="{ 'width': linoWidth+'px' }">
         <img src="../../assets/images/view.svg" alt="">
       </div>
-      <div class="pl-2 hint-text">View only, blueprint is not a code editor.</div>
+      <div class="pl-2 hint-text">View only, blueprint is not a code editor. | {{ tab.title }}</div>
     </div>
     <div class="main-wrap scroll-appearance">
       <div class="main">
