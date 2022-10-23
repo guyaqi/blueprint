@@ -7,6 +7,7 @@ import { BPSymbol } from '../../util/blueprint/symbol'
 import { workspace } from '../../util/workspace'
 import { pyBridge } from '../../util/python'
 import { builtins } from '../../util/blueprint/builtins';
+import { editor } from '../../util/editor';
 
 /**
  * Layout
@@ -72,7 +73,7 @@ const instantiate = (s: BPSymbol) => {
   const node = new BPNInstance(s.toBPN())
   node.position = genPos
 
-  workspace.value.oCtx!.nodes.push(node)
+  editor.value.tab?.context?.nodes.push(node)
 
   emit('close')
 }

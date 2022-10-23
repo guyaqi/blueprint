@@ -1,4 +1,5 @@
 import { os } from "../os"
+import * as file from '../fm'
 
 export namespace pythonExecLocal {
   export const ExecName: string = 'python.exe'
@@ -14,7 +15,7 @@ export namespace pythonExecLocal {
     pathList = Array.from(new Set(pathList))
     for (const item of pathList) {
       if (await pythonIsInDir(item)) {
-        return os.path.join(item, pythonExecLocal.ExecName)
+        return file.path.join(item, pythonExecLocal.ExecName)
       }
     }
     return ''
@@ -32,7 +33,7 @@ export namespace pythonExecLocal {
   }
 
   export const execTool = async (toolName: string, param: string): Promise<any> => {
-    const toolPath = os.path.join(process.env.PUBLIC!, 'python', 'src', `${toolName}.py`)
+    const toolPath = file.path.join(process.env.PUBLIC!, 'python', 'src', `${toolName}.py`)
     // await python.value.init()
     const stdout = await exec(`${toolPath} ${param}`)
     try {

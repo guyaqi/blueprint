@@ -4,6 +4,7 @@ import vue from '@vitejs/plugin-vue'
 import electron from 'vite-electron-plugin'
 import { customStart } from 'vite-electron-plugin/plugin'
 import pkg from './package.json'
+import path from 'path'
 
 rmSync('dist-electron', { recursive: true, force: true })
 
@@ -30,6 +31,11 @@ export default defineConfig({
     }
   })() : undefined,
   clearScreen: false,
+  // resolve: {
+  //   alias: {
+  //     '@': path.resolve(__dirname, 'src')
+  //   },
+  // },
 })
 
 function debounce<Fn extends (...args: any[]) => void>(fn: Fn, delay = 299) {

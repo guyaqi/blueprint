@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import store from '../../store';
-import { BaseTree } from '../../util/datastructure/tree';
 import TreeItem from '../common/Tree/TreeItem.vue'
 
 // defineProps<{ msg: string }>()
@@ -20,24 +19,24 @@ import TreeItem from '../common/Tree/TreeItem.vue'
 
 const tabIndex = ref(0)
 
-watch(computed(() => store.state.service), async (value) => {
-  if (!value) {
-    return
-  }
-  try {
+// watch(computed(() => store.state.service), async (value) => {
+//   if (!value) {
+//     return
+//   }
+//   try {
     
-    // siteTree.value = BaseTree.parse({ name: 'site packages', children: value.rootSymbolList!.pkglist['site'] }, x => x.name, x => x.children)
-    // builtinTree.value = BaseTree.parse({ name: 'builtin packages', children: value.rootSymbolList!.pkglist['builtin'] }, x => x.name, x => x.children)
-    // console.log(siteTree);
-    // console.log(builtinTree);
-    // console.log(builtinTree.value!.tree())
-  }
-  catch (err) {
-    console.warn('读取lib列表失败')
-    console.warn(err)
-  }
+//     // siteTree.value = BaseTree.parse({ name: 'site packages', children: value.rootSymbolList!.pkglist['site'] }, x => x.name, x => x.children)
+//     // builtinTree.value = BaseTree.parse({ name: 'builtin packages', children: value.rootSymbolList!.pkglist['builtin'] }, x => x.name, x => x.children)
+//     // console.log(siteTree);
+//     // console.log(builtinTree);
+//     // console.log(builtinTree.value!.tree())
+//   }
+//   catch (err) {
+//     console.warn('读取lib列表失败')
+//     console.warn(err)
+//   }
   
-})
+// })
 
 const printHierarchy = () => {
   // console.log(builtinTree.value!.tree())

@@ -1,6 +1,6 @@
-import { BaseNode } from "../datastructure/tree"
+import { BaseNode } from "../basic/tree"
 import { os } from "../os"
-import { TextFile } from "../os/file"
+import { TextFile } from "../fm/file"
 import pyBridge from "../python"
 
 export const main = async () => {

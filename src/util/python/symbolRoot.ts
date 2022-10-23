@@ -3,6 +3,7 @@ import { pythonResolver } from './resolver'
 import { pythonAst } from './ast'
 import { os } from "../os"
 import { pythonExecLocal } from "./execLocal"
+import * as file from '../fm'
 
 type PyFunctionExport = {
   name: string
@@ -65,7 +66,7 @@ export class SymbolRoot {
 
   
   private get _stdTypeShedPath() {
-    return os.path.join(process.env.PUBLIC!, 'python', 'typeshed', 'stdlib')
+    return file.path.join(process.env.PUBLIC!, 'python', 'typeshed', 'stdlib')
   }
 
   _getExports(m: pythonAst.Module): PyExports {
@@ -236,7 +237,7 @@ export class SymbolRoot {
   }
   
   async execTool(toolName: string, param: string): Promise<any> {
-    const toolPath = os.path.join(process.env.PUBLIC!, 'python', 'src', `${toolName}.py`)
+    const toolPath = file.path.join(process.env.PUBLIC!, 'python', 'src', `${toolName}.py`)
     // await python.value.init()
     const stdout = await pythonExecLocal.exec(`${toolPath} ${param}`)
     try {

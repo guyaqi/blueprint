@@ -1,8 +1,9 @@
 // import { python } from './ast'
 
-import { BaseNode } from "../datastructure/tree"
+import { BaseNode } from "../basic/tree"
 import { os } from "../os"
 import { pythonAst } from "./ast"
+import * as file from '../fm'
 
 export namespace pythonResolver {
 
@@ -72,11 +73,11 @@ export namespace pythonResolver {
         let children = await os.ls(path)  
         const __init__ = _pick__init__(children)
         children = children.filter(x => x != '__init__.pyi' && x != '__init__.py')
-        const fpChildren = children.map(x => os.path.join(path, x))
+        const fpChildren = children.map(x => file.path.join(path, x))
 
         const nodeChildren = []
         if (__init__ !== null) {
-          nodeChildren.push(new PyHierarchyNode('__init__', false, os.path.join(path, __init__)))
+          nodeChildren.push(new PyHierarchyNode('__init__', false, file.path.join(path, __init__)))
         }
         for (const fpChild of fpChildren) {
           nodeChildren.push(await _treeResolve(fpChild, root))

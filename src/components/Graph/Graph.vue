@@ -70,16 +70,13 @@ const contextmenu = (e: MouseEvent) => {
 const dblclick = (e: MouseEvent) => {
   isBpMenuShown.value = false
 }
-watch(computed(() => context.value?.nodes), (value, oldValue) => {
+watch(computed(() => context.nodes), (value, oldValue) => {
   if (!value || value.length != oldValue?.length) {
     isBpMenuShown.value = false
   }
 }, {
   deep: true
 })
-
-const nodes = computed(() => context.value?.nodes)
-
 </script>
   
 <template>

@@ -1,12 +1,11 @@
 import { randomInt } from "../naming"
-import { BaseFile } from "./file"
 
 const { ipcRenderer } = require("electron")
 
 export namespace os {
 
   
-  export const gChnlFunc = <T_Param, T_Return>(channel: string, pre?: (p: T_Param) => T_Param, post?: any) => {
+  export const gChnlFunc = <T_Param, T_Return>(channel: string, pre?: (p: T_Param) => any, post?: any) => {
 
     const _promiseIndex = new Map<number, any>()
 
@@ -31,36 +30,7 @@ export namespace os {
 
     return func
   }
-
-
-  export namespace path {
-    // export const sep = gChnlFunc<void, { sep: string }>('path-sep')
-
-    export const join = (...params: string[]) => {
-      // const _sep = (await sep()).sep
-      const sep = params.findIndex(param => param.indexOf('\\') >= 0) >= 0 ? '\\' : '/'
-
-      let res = ''
-      for (let i = 0; i < params.length; i++) {
-        const param = params[i]
-        if (i !== params.length - 1) {
-          res += param.endsWith(sep) ? param : (param + sep)
-        }
-        else {
-          res += param
-        }        
-      }
-      return res
-    }
-  }
-
   
-
-  export const read = gChnlFunc<{ path: string }, BaseFile>(
-    'file-load',
-    undefined,
-    (res: any) => new BaseFile(res.path, res.buffer)
-  )
 
   export const greeting = gChnlFunc<{ name: string }, { msg: string }>(
     'greeting'

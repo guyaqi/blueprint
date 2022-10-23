@@ -2,25 +2,18 @@
 import { computed, onMounted, ref, watch } from 'vue'
 
 import { shell } from '../../util/logger'
-import store from '../../store';
-import { BlueprintService } from '../../util/blueprint/service';
+import store from '../../store'
 import network from '../../util/network';
 
-
-/**
- * 
- * 工作区操作相关代码
- * 
- */
-const service = ref(null as (null | BlueprintService))
 
 /**
  * 
  * 命令执行相关代码
  * 
  */
-const executing = computed(() => !service.value ? false : (service.value.occupied))
-const canExecute = computed(() => !executing.value)
+// const executing = computed(() => !service.value ? false : (service.value.occupied))
+// const canExecute = computed(() => !executing.value)
+const canExecute = true
 
 setInterval(() => {
   // console.log(`connected: ${connected.value}`)
@@ -28,31 +21,31 @@ setInterval(() => {
 }, 1000)
 
 const execute = async () => {
-  if (!canExecute.value) {
-    return
-  }
+  // if (!canExecute.value) {
+  //   return
+  // }
 
-  const command = 'default'
-  const param = 'keyboard.mouse.WheelEvent'
-  shell.logText(`命令执行: ${command} ${param}`)
+  // const command = 'default'
+  // const param = 'keyboard.mouse.WheelEvent'
+  // shell.logText(`命令执行: ${command} ${param}`)
 
-  const res = await service.value!.execAny(command, param)
-  if (res.success) {
-    shell.logText(JSON.stringify(res.result!))
-  }
-  else {
-    for (const line of res.error!) {
-      shell.logText(line)
-    }
-  }
+  // const res = await service.value!.execAny(command, param)
+  // if (res.success) {
+  //   shell.logText(JSON.stringify(res.result!))
+  // }
+  // else {
+  //   for (const line of res.error!) {
+  //     shell.logText(line)
+  //   }
+  // }
   
 }
 
 onMounted(() => {
-  setTimeout(async () => {
-    // const res = await network.value.request('https://baidu.com')
-    // console.log(res)
-  })
+  // setTimeout(async () => {
+  //   // const res = await network.value.request('https://baidu.com')
+  //   // console.log(res)
+  // })
 })
 </script>
   

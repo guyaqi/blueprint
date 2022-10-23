@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BaseFile, TextFile } from '../../util/os/file';
+import { TextFile } from '../../util/fm/file';
 import { computed, onMounted, onUnmounted, Ref, ref } from 'vue'
 import hljs from 'highlight.js'
 import { FileTab } from '../../util/editor'

@@ -1,30 +1,28 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import store from '../store';
-import { shell } from '../util/shell/shell';
 
 /**
  * 
  * 连接工作区相关
  * 
  */
-const connected = computed(() => store.state.service != null)
 const trying = ref(false)
 
-const connectWorkspace = async () => {
-  if (trying.value) {
-    return
-  }
-  trying.value = true
+// const connectWorkspace = async () => {
+//   if (trying.value) {
+//     return
+//   }
+//   trying.value = true
 
-  statusText.value = '连接中...'
-  await store.dispatch('serviceConnect')
-  if (!store.state.service) {
-    statusText.value = '连接失败, 点击重试'
-  }
+//   statusText.value = '连接中...'
+//   await store.dispatch('serviceConnect')
+//   if (!store.state.service) {
+//     statusText.value = '连接失败, 点击重试'
+//   }
 
-  trying.value = false
-}
+//   trying.value = false
+// }
 
 const statusText = ref('工作区未连接, 点击以连接')
 
@@ -37,8 +35,8 @@ const statusText = ref('工作区未连接, 点击以连接')
 </script>
   
 <template>
-  <div class="guide-mask" v-if="!connected" @click.stop="connectWorkspace"
-    @contextmenu.prevent.stop="connectWorkspace">{{ statusText }}</div>
+  <!-- <div class="guide-mask" v-if="!connected" @click.stop="connectWorkspace"
+    @contextmenu.prevent.stop="connectWorkspace">{{ statusText }}</div> -->
 </template>
   
 <style scoped lang="scss">

@@ -1,35 +1,35 @@
-import { symbol } from "../util/blueprint/symbol";
-import { BPN, BPNType } from "../util/blueprint/node";
-import { BPS, BPSType } from "../util/blueprint/slot";
 
-/**
- * 
- * Python导入的数据注解
- * 
- */
+// import { BPN, BPNType } from "../util/blueprint/node";
+// import { BPS, BPSType } from "../util/blueprint/slot";
 
-export type PkgTreeNode = {
-  name: string,
-  children: PkgTreeNode[]
-}
+// /**
+//  * 
+//  * Python导入的数据注解
+//  * 
+//  */
 
-export type SymbolNode = {
-  name: string,
-  function_list?: any[],
-  var_list?: any[],
-  class_list?: string[],
-}
+// export type PkgTreeNode = {
+//   name: string,
+//   children: PkgTreeNode[]
+// }
 
-export type RootSymbol = {
-  pkglist: {
-    builtin: PkgTreeNode[],
-    site: PkgTreeNode[],
-  },
-  root_symbols: SymbolNode[]
-}
+// export type SymbolNode = {
+//   name: string,
+//   function_list?: any[],
+//   var_list?: any[],
+//   class_list?: string[],
+// }
+
+// export type RootSymbol = {
+//   pkglist: {
+//     builtin: PkgTreeNode[],
+//     site: PkgTreeNode[],
+//   },
+//   root_symbols: SymbolNode[]
+// }
 
 
-export type FunctionSignature = {
-  param: string,
-  type: string,
-}
+// export type FunctionSignature = {
+//   param: string,
+//   type: string,
+// }

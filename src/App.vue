@@ -5,11 +5,10 @@ import Logger from './components/Logger/Logger.vue';
 import Sidebar from './components/Sidebar/Sidebar.vue';
 import Editor from './components/Editor/Editor.vue';
 import Menubar from './components/Menubar.vue';
-import GuideMask from './components/GuideMask.vue';
 import PopupRoot from './components/Popup/PopupRoot.vue';
 import store from './store';
 import { onMounted, ref } from 'vue';
-import { editor } from './util/editor'
+import { editor, inspector } from './util/editor'
 import Statusbar from './components/Status/Statusbar.vue';
 
 const { ipcRenderer } = require('electron');
@@ -22,7 +21,7 @@ const trySave = (e: KeyboardEvent) => {
 	if(e.key == 's' && (navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)){
     e.preventDefault();
     
-    if (!editor.value.oBPCI) {
+    if (!inspector.value.blueprint) {
       return
     }
 		editor.value.saveSrc()
@@ -44,9 +43,7 @@ onMounted(() => {
 
 <template>
   <div class="root" ref="rootRef">
-    <!-- <GuideMask /> -->
     <PopupRoot />
-    <!-- <Menubar /> -->
     <div class="under-menubar">
       <Sidebar />
       <div class="right-sidebar">

@@ -9,6 +9,7 @@ import { editor } from '../../util/editor';
 import { os } from '../../util/os'
 import TreeView from '../common/Tree/TreeView.vue';
 import { popup, PopupResult } from '../../util/popup';
+import * as file from '../../util/fm'
 
 // 这里是workspace的主要调用区
 workspace.value.init()
@@ -91,7 +92,7 @@ const refresh = () => {
 }
 
 const createCb = (from: Tree<BaseNode>, newName: string) => {
-  const path = os.path.join((from.inner as FsTreeNode).path, newName)
+  const path = file.path.join((from.inner as FsTreeNode).path, newName)
   if (!newDir) {
     os.fileCreate({ path: `${path}.bp`, })
   }

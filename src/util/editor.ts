@@ -2,7 +2,7 @@ import { ref } from "vue"
 import { BPCtx } from "./blueprint/context"
 import { BPC, BPCI } from "./blueprint/struct"
 import { os } from "./os"
-import { BaseFile, TextFile } from "./os/file"
+import { File, TextFile } from "./fm/file"
 
 export type FileTab = {
   title: string
@@ -14,7 +14,7 @@ export type FileTab = {
   context?: BPCtx
 
   // isBp == false
-  file?: BaseFile
+  file?: File
 }
 
 class Inspector {
@@ -28,7 +28,7 @@ class Inspector {
     }
     this.path = path
 
-    const f = await os.read({ path, })
+    const f = await File.open(path)
     const sf = TextFile.from(f)
     
     if (sf.text === '') {
@@ -77,6 +77,8 @@ export const inspector = ref(new Inspector())
 
 class Editor {
 
+  
+
   /**
    * 
    * All about tabs
@@ -90,7 +92,7 @@ class Editor {
     return this._tabIndex
   }
   set tabIndex(val: number) {
-    if (!this.tabs[val].isBp) {
+    if (this.tabs[val] && !this.tabs[val].isBp) {
       inspector.value.close()
     }
     this._tabIndex = val
@@ -185,7 +187,7 @@ class Editor {
       if (tab.file) {
         return
       }
-      tab.file = await os.read({ path: tab.path })
+      tab.file = await File.open(tab.path)
     }
   }
 

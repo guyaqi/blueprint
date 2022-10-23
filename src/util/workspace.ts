@@ -5,7 +5,7 @@
 
 import { IpcRendererEvent } from "electron"
 import { ref } from "vue"
-import { Tree, BaseNode } from "./datastructure/tree"
+import { Tree, BaseNode } from "./basic/tree"
 
 //   if (handle.kind === 'file') {
 //     // run file code

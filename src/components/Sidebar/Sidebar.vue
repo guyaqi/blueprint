@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import store from '../../store';
-import { BaseTree, BaseTreeNode } from '../../util/datastructure/tree';
 import LibView from './LibView.vue';
 import SrcView from './WorkspaceView.vue';
 

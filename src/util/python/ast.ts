@@ -1,5 +1,5 @@
 import lodash from "lodash"
-import { ConditionSet } from "../datastructure/condition"
+import { ConditionSet } from "../basic/condition"
 import { PythonVersion } from "./common"
 
 const TYPE_KEY_NAME = '__python_type_name'

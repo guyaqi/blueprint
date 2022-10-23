@@ -20,7 +20,7 @@ const click = () => {
   if (isLiterial) {
     return
   }
-  editor.value.oCtx!.clickSlot(instance)
+  editor.value.tab?.context?.clickSlot(instance)
 }
 
 const root: Ref<null | HTMLElement> = ref(null)
