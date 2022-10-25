@@ -3,7 +3,7 @@ import { onMounted, Ref, ref, watch } from 'vue'
 import { Point } from '../../util/blueprint/math';
 import { BPSType, BPS, BPSInstance } from '../../util/blueprint/slot';
 import BSlotIcon from '../Graph/BSlotIcon.vue';
-import { editor } from '../../util/editor';
+import { editorBus } from '../../util/editor';
 
 const { instance, } = defineProps<{ instance: BPSInstance }>()
 
@@ -20,7 +20,7 @@ const click = () => {
   if (isLiterial) {
     return
   }
-  editor.value.tab?.context?.clickSlot(instance)
+  editorBus.value.tab?.context?.clickSlot(instance)
 }
 
 const root: Ref<null | HTMLElement> = ref(null)

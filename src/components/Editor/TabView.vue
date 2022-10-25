@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity';
-import { editor } from '../../util/editor';
+import { editorBus } from '../../util/editor';
 import { ref, watch } from 'vue'
 
-const tabs = computed(() => editor.value.tabs)
-const tabIndex = computed(() => editor.value.tabIndex)
+const tabs = computed(() => editorBus.value.tabs)
+const tabIndex = computed(() => editorBus.value.tabIndex)
 
 const click = (index: number) => {
   // console.log(`set index: ${index}`)
-  editor.value.tabIndex = index
+  editorBus.value.tabIndex = index
 }
 
 const close = (index: number) => {
-  editor.value.close(index)
+  editorBus.value.close(index)
 }
 </script>
   

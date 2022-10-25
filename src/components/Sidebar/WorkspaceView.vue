@@ -5,7 +5,7 @@ import { FsTreeNode } from '../../util/workspace';
 import { ActionNode, BaseNode, Tree } from '../../util/datastructure/tree';
 import TreeItem from '../common/Tree/TreeItem.vue';
 import { workspace } from '../../util/workspace'
-import { editor } from '../../util/editor';
+import { editorBus } from '../../util/editor';
 import { os } from '../../util/os'
 import TreeView from '../common/Tree/TreeView.vue';
 import { popup, PopupResult } from '../../util/popup';
@@ -31,7 +31,7 @@ const clickFile = async (item: Tree<FsTreeNode>) => {
 
 const dblClickFile = async (item: Tree<FsTreeNode>) => {
   if (!item.inner.isDir) {
-    editor.value.openFile(item.inner.path)
+    editorBus.value.openFile(item.inner.path)
   }
 }
 

@@ -4,25 +4,44 @@ import { ref } from 'vue'
 import { BPS } from '../../util/blueprint/slot';
 import { BPN, BPNType } from '../../util/blueprint/node';
 import { popup } from '../../util/popup'
-import { editor, inspector } from '../../util/editor'
+import { editorBus, FileTab } from '../../util/editor'
+import { BPCI } from '../../util/blueprint/struct';
+import { BPCtx } from '../../util/blueprint/context'
 
-const bpci = computed(() => inspector.value.blueprint)
-const bpc = computed(() => bpci.value?.config)
+const pp = defineProps<{ blueprint: BPCI, rootPath: string, context?: BPCtx }>()
+const bpci = pp.blueprint
+// blueprint: BPCI, context?: BPCtx
+// console.warn(pp.blueprint)
+
+// const bpci = pp.blueprint
+const bpc = bpci.config
+
+
+// const bpci = computed(() => inspector.value.blueprint)
+// const bpc = computed(() => bpci.value?.config)
 
 
 const addFunction = async () => {
-  const name = bpc.value!.newFunctionName()
+  const name = bpc.newFunctionName()
   const toAdd = new BPN(BPNType.FUNCTION, name, BPS.makeProcessIOPair())
 
   await popup.value.editFunction(toAdd)
-  bpc.value!.functions.push(toAdd)
+  bpc.functions.push(toAdd)
 }
 
 const openFunctionContext = (name: string) => {
   
-  const path = `${inspector.value.path}>${name}`
+  const path = `${pp.rootPath}>${name}`
 
-  editor.value.openFile(path)
+  editorBus.value.openFile(path)
+
+  // 如果没有指定context，说明是从蓝图根文件打开
+  // 从根文件打开子文件时关闭根文件（因为子文件也有Inspector导航）
+  if (!pp.context) {
+    const bus = editorBus.value
+    const thisTabIndex = bus.findInTabs(pp.rootPath)
+    bus.close(thisTabIndex)
+  }
 }
 
 /* function scope */
@@ -35,9 +54,14 @@ const mouseInFunctionScope = ref(false)
     
     <div class="member-scope">
       <div class="head">
-        <div><span class="name-member">members(NOT IMPLEMENTED)</span></div>
+        <div><span class="name-member">members</span></div>
       </div>
-      <div class="simple-list-item name-member">--</div>
+      <div v-if="!bpc!.members.length" class="simple-list-item name-member">--</div>
+      <div v-else class="scroll-appearance scope-list">
+        <div>
+          <div v-for="node in bpc!.members" class="simple-list-item name-member click hover-hl" @dblclick="openFunctionContext(node.name)">{{ node.name }}</div>
+        </div>
+      </div>
     </div>
 
     <div class="function-scope" @mouseenter="mouseInFunctionScope=true" @mouseleave="mouseInFunctionScope=false">
@@ -57,8 +81,8 @@ const mouseInFunctionScope = ref(false)
       <!-- <div class="simple-list-item name-function">main</div> -->
     </div>
 
-    <div class="local-scope">
-      <div class="head"><span class="name-local">local(NOT IMPLEMENTED)</span></div>
+    <div class="local-scope" v-if="pp.context">
+      <div class="head"><span class="name-local">local</span></div>
       <div class="simple-list-item name-local">--</div>
     </div>
   </div>
@@ -84,7 +108,8 @@ const mouseInFunctionScope = ref(false)
 
 
 .member-scope, .function-scope, .local-scope {
-  height: 33.3%;
+  flex-shrink: 0;
+  flex-grow: 1;
 
   .scope-list {
     height: calc(100% - 32px);

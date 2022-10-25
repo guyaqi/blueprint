@@ -8,7 +8,7 @@ import Menubar from './components/Menubar.vue';
 import PopupRoot from './components/Popup/PopupRoot.vue';
 import store from './store';
 import { onMounted, ref } from 'vue';
-import { editor, inspector } from './util/editor'
+import { editorBus, inspector } from './util/editor'
 import Statusbar from './components/Status/Statusbar.vue';
 
 const { ipcRenderer } = require('electron');
@@ -24,7 +24,7 @@ const trySave = (e: KeyboardEvent) => {
     if (!inspector.value.blueprint) {
       return
     }
-		editor.value.saveSrc()
+		editorBus.value.saveSrc()
     
 		return false;
 	}

@@ -2,19 +2,123 @@ import { ref } from "vue"
 import { BPCtx } from "./blueprint/context"
 import { BPC, BPCI } from "./blueprint/struct"
 import { os } from "./os"
-import { File, TextFile } from "./fm/file"
+import { BaseFile, TextFile } from "./fm/file"
+import { file, path } from "./fm"
+import { FileFactory } from "./fm/fileFactory"
+import { FilePool } from "./fm/filePool"
 
-export type FileTab = {
+/**
+ * ## FileType
+ * 
+ * 文件的类型，用来为文件指定打开方式
+ * - 通用
+ *   - Unsupported: 文件类型尚不受支持
+ *   - TextView: 仅限浏览的文本显示
+ * - 蓝图
+ *   - BpInspect:蓝图属性检视
+ *   - BpCanvas: 蓝图画布编辑
+ */
+export enum FileType {
+  Unsupported,
+  TextView,
+  BpInspect,
+  BpCanvas,
+}
+
+/**
+ * ## FileTab
+ * 
+ * 编辑器中一个Tab的数据实体。
+ * 
+ * 包含渲染属性：
+ * 1. title: tab的标题，目前tab仅显示文字标题，未来再考虑拓展
+ * 2. fileType: 决定tab由什么编辑器打开
+ * 
+ * 数据属性：
+ * 1. filePath: tab使用的文件的实际路径
+ * 2. innerIndex: 被使用的文件的内部索引（具体含义由被使用的文件决定）
+ * 
+ * 引用属性：
+ * 1. file: tab使用的文件，从文件池打开
+ */
+export class FileTab {
+
   title: string
-  path: string
+  fileType?: FileType
 
-  isBp: boolean
+  uniPath: string
+  filePath: string
+  innerIndex: string
 
-  // isBp == true
-  context?: BPCtx
+  file?: file.BaseFile
 
-  // isBp == false
-  file?: File
+  static readonly SUB_FILE_SEP = '>'
+
+  /**
+   * tab的内容，其实是 `file.partIndexer(innerIndex)` 的 getter 简化
+   * 
+   * 由于file实际上一般是File的子类，content的类型也是由子类的函数调用返回所决定的
+   */
+  get content(): any {
+    if (!this.file) {
+      throw new Error('FileTab.content is called without open any file')
+    }
+    return this.file.partIndexer(this.innerIndex)
+  }
+  
+  /**
+   * FileTab
+   * @param unipath 通用路径，使用 ">" 作为分隔符，可以指定子内容索引
+   */
+  private constructor(uniPath: string) {
+    
+    // innerIndex & filePath & uniPath
+    const sepIndex = uniPath.indexOf(FileTab.SUB_FILE_SEP)
+    if(sepIndex < 0) {
+      this.innerIndex = ''
+      this.filePath = uniPath
+    }
+    else {
+      this.innerIndex = uniPath.slice(sepIndex+1)
+      this.filePath = uniPath.slice(0, sepIndex)
+    }
+    this.uniPath = uniPath
+
+    // title
+    const pathArr = this.filePath.split(/[\\|/]/)
+    if (this.innerIndex != '') {
+      this.title = `${this.innerIndex} - ${pathArr[pathArr.length-1]}`
+    }
+    else {
+      this.title = pathArr[pathArr.length-1]
+    }
+  }
+
+  static async from(unipath: string): Promise<FileTab> {
+    const tab = new FileTab(unipath)
+    // open file
+    tab.file = await FilePool.instance.acquire(tab.filePath)
+
+    // fileType
+    const postfix = path.postfixOf(tab.title)
+    if (postfix == 'bp') {
+      if (tab.innerIndex) {
+        tab.fileType = FileType.BpCanvas
+      }
+      else {
+        tab.fileType = FileType.BpInspect
+      }
+    }
+    else {
+      if (tab.file.isPureText()) {
+        tab.fileType = FileType.TextView
+      }
+      else {
+        tab.fileType = FileType.Unsupported
+      }
+    }
+    return tab 
+  }
 }
 
 class Inspector {
@@ -28,7 +132,7 @@ class Inspector {
     }
     this.path = path
 
-    const f = await File.open(path)
+    const f = await BaseFile.open(path)
     const sf = TextFile.from(f)
     
     if (sf.text === '') {
@@ -75,9 +179,10 @@ class Inspector {
 
 export const inspector = ref(new Inspector())
 
-class Editor {
-
-  
+/**
+ * 编辑区域的数据总线
+ */
+class EditorBus {
 
   /**
    * 
@@ -86,17 +191,17 @@ class Editor {
    */
 
   tabs: FileTab[] = []
-  // tabIndex: number = -1
-  _tabIndex: number = -1
-  get tabIndex(): number {
-    return this._tabIndex
-  }
-  set tabIndex(val: number) {
-    if (this.tabs[val] && !this.tabs[val].isBp) {
-      inspector.value.close()
-    }
-    this._tabIndex = val
-  }
+  tabIndex: number = -1
+  // _tabIndex: number = -1
+  // get tabIndex(): number {
+  //   return this._tabIndex
+  // }
+  // set tabIndex(val: number) {
+  //   if (this.tabs[val] && !this.tabs[val].isBp) {
+  //     inspector.value.close()
+  //   }
+  //   this._tabIndex = val
+  // }
   get tab(): FileTab|undefined {
     if (this.tabIndex >= 0 && this.tabIndex < this.tabs.length) {
       return this.tabs[this.tabIndex]
@@ -105,7 +210,7 @@ class Editor {
   }
 
   findInTabs(path: string): number {
-    return this.tabs.findIndex(x => x.path == path)
+    return this.tabs.findIndex(x => x.uniPath == path)
   }
 
   /**
@@ -113,83 +218,84 @@ class Editor {
    * Open files
    * 
    */
-  static readonly SUB_FILE_SEP = '>'
   
   async openFile(path: string) {
     const foundIndex = this.findInTabs(path)
     if (foundIndex >= 0) {
       this.tabIndex = foundIndex
-      await this._openCurrent()
+      // await this._openCurrent()
       return
     }
     else {
-      const isSubFile = path.includes(Editor.SUB_FILE_SEP)
-      console.log(path)
-      if (isSubFile) {
-        const sepIndex = path.indexOf(Editor.SUB_FILE_SEP)
-        const truePath = path.slice(0, sepIndex)
-        const subPath = path.slice(sepIndex + 1)
-        if (!truePath.endsWith('.bp')) {
-          throw new Error('now only bp subpath is supported')
-        }
-        await inspector.value.open(truePath)
-        const newTab: FileTab = {
-          title: subPath,
-          path,
-          isBp: true,
-        }
-        this.tabs.push(newTab)
-        this.tabIndex = this.tabs.length-1
-        await this._openCurrent()
-        return
-      }
-      else {
-        // if open new bp, no tab is added, inspector is lauched
-        if (path.endsWith('.bp')) {
-          const openNew = await inspector.value.open(path)
-          if (openNew) {
-            this.tabIndex = -1
-          }
-        }
-        // open new simple text file
-        else {
-          const pathArr = path.split(/[\\|/]/).filter(x => x!='')
-          const newTab: FileTab = {
-            title: pathArr[pathArr.length-1],
-            path,
-            isBp: false,
-          }
-          this.tabs.push(newTab)
-          this.tabIndex = this.tabs.length-1
-          await this._openCurrent()
-          return
-        }
-      }
-      
-      
+      const newTab = await FileTab.from(path)
+      this.tabs.push(newTab)
+      this.tabIndex = this.tabs.length-1
+
+      // const isSubFile = path.includes(EditorBus.SUB_FILE_SEP)
+      // console.log(path)
+      // if (isSubFile) {
+      //   const sepIndex = path.indexOf(EditorBus.SUB_FILE_SEP)
+      //   const truePath = path.slice(0, sepIndex)
+      //   const subPath = path.slice(sepIndex + 1)
+      //   if (!truePath.endsWith('.bp')) {
+      //     throw new Error('now only bp subpath is supported')
+      //   }
+      //   await inspector.value.open(truePath)
+      //   const newTab: FileTab = {
+      //     title: subPath,
+      //     path,
+      //     isBp: true,
+      //   }
+      //   this.tabs.push(newTab)
+      //   this.tabIndex = this.tabs.length-1
+      //   await this._openCurrent()
+      //   return
+      // }
+      // else {
+      //   // if open new bp, no tab is added, inspector is lauched
+      //   if (path.endsWith('.bp')) {
+      //     const openNew = await inspector.value.open(path)
+      //     if (openNew) {
+      //       this.tabIndex = -1
+      //     }
+      //   }
+      //   // open new simple text file
+      //   else {
+      //     const pathArr = path.split(/[\\|/]/).filter(x => x!='')
+      //     const newTab: FileTab = {
+      //       title: pathArr[pathArr.length-1],
+      //       path,
+      //       isBp: false,
+      //     }
+      //     this.tabs.push(newTab)
+      //     this.tabIndex = this.tabs.length-1
+      //     await this._openCurrent()
+      //     return
+      //   }
+      // }
     }
   }
 
-  private async _openCurrent() {
-    // 根据isBp为当前tab添加context或者basefile
-    const tab = this.tab
-    if (!tab) {
-      return
-    }
-    // 打开蓝图上下文时，会假设inspector已经正确切换
-    if (tab.isBp) {
-      if (tab.context) {
-        return
-      }
-      tab.context = await inspector.value.getCtx(tab.title)
-    }
-    else {
-      if (tab.file) {
-        return
-      }
-      tab.file = await File.open(tab.path)
-    }
-  }
+  // private async _openCurrent() {
+  //   // 根据isBp为当前tab添加context或者basefile
+  //   const tab = this.tab
+  //   if (!tab) {
+  //     return
+  //   }
+  //   // 打开蓝图上下文时，会假设inspector已经正确切换
+  //   if (tab.isBp) {
+  //     if (tab.context) {
+  //       return
+  //     }
+  //     tab.context = await inspector.value.getCtx(tab.title)
+  //   }
+  //   else {
+  //     if (tab.file) {
+  //       return
+  //     }
+  //     tab.file = await File.open(tab.path)
+  //   }
+  // }
 
   close(index: number) {
     this.tabs.splice(index, 1)
@@ -213,6 +319,7 @@ class Editor {
 
   // 渲染端想保存某个文件
   async saveSrc() {
+    console.log('editor.save called')
     // console.log('=== save bpc');
     // console.log(this.oBPCI);
 
@@ -241,4 +348,4 @@ class Editor {
   // }
 }
 
-export const editor = ref(new Editor())
+export const editorBus = ref(new EditorBus())

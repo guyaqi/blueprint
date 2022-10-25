@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { editor, FileTab } from '../../util/editor';
+import { editorBus, FileTab, FileType } from '../../util/editor';
 import { ref, watch, computed, Ref } from 'vue'
 import Graph from '../Graph/Graph.vue';
 import Inspector from './Inspector.vue';
 import TabView from './TabView.vue';
-import TextEdit from './TextEdit.vue';
+import TextEdit from './TextEditor.vue';
+import Unsupport from './Unsupport.vue';
+import BlueprintCanvas from './BlueprintCanvas.vue';
+import BlueprintInspector from './BlueprintInspector.vue'
 
 const tab: Ref<FileTab|undefined> = ref(undefined) //computed(() => editor.value.tab)
-watch(computed(() => editor.value.tab), (val) => {
+watch(computed(() => editorBus.value.tab), (val) => {
   tab.value = undefined
   setTimeout(() => {
     tab.value = val
@@ -18,13 +21,17 @@ watch(computed(() => editor.value.tab), (val) => {
   
 <template>
   <div class="editor">
-    <Inspector />
     <div class="main">
       <div class="head">
         <TabView />
       </div>
-      <Graph v-if="tab && tab.isBp && tab.context" :context="tab.context" />
-      <TextEdit v-else-if="tab && !tab.isBp && tab.file" :tab="tab"/>
+      <div class="fill" v-if="tab">
+        <Unsupport v-if="tab.fileType == FileType.Unsupported" />
+        <TextEdit v-else-if="tab.fileType == FileType.TextView" :tab="tab"/>
+        <BlueprintCanvas v-else-if="tab.fileType == FileType.BpCanvas" :tab="tab"/>
+        <BlueprintInspector v-else-if="tab.fileType == FileType.BpInspect" :tab="tab"/>
+      </div>
+      
     </div>
   </div>
 </template>
@@ -49,6 +56,10 @@ watch(computed(() => editor.value.tab), (val) => {
 .main {
   flex-grow: 1;
   height: 100%;
+}
+
+.fill {
+  height: calc(100% - 32px);
 }
 
 </style>

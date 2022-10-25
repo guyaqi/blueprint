@@ -10,41 +10,66 @@
  */
 
 import { file, path } from "."
-import { File } from "./file"
+import { BaseFile } from "./file"
 import { FileFactory } from "./fileFactory"
 
 class FilePoolItem {
-  file: File
+  file: BaseFile
   refer: number
 
-  constructor(f: File) {
+  constructor(f: BaseFile) {
     this.file = f
     this.refer = 0
   }
 }
 
 // *单例
-class FilePool {
+export class FilePool {
   private _pool = new Map<string, FilePoolItem>()
 
   private async _open(_path: string) {
 
-    const factory = FileFactory.instance.getFactory(path.postfixOf(_path))
+    const postfix = path.postfixOf(_path)
+    // console.warn(FileFactory.instance._map)
+    const factory = FileFactory.instance.getFactory(postfix)
+    // console.warn(FileFactory.instance._map)
+    // console.log(postfix)
+    // console.log(factory)
     const f = await factory(_path)
-    this._pool.set(_path, new FilePoolItem(f))
+    // console.warn(f)
+    // console.warn(_path)
+    const item = new FilePoolItem(f)
+    // console.warn(item)
+    this._pool.set(_path, item)
+    // console.warn(this._pool)
   }
 
-  acquire<T extends file.File>(path: string) {
-    if (!this._pool.get(path)) {
-      this._open(path)
+  async acquire<T extends file.BaseFile>(path: string): Promise<T> {
+    // const tryItem = this._pool.get(path)
+    let item = this._pool.get(path)
+    if (!item) {
+      await this._open(path)
+      item = this._pool.get(path)
     }
-    const item = this._pool.get(path)!
+    
+    if (item == undefined) {
+      // console.warn(this._pool)
+      throw new Error(`FilePool.acquire: _open file failed`)
+    }
     item.refer += 1
 
     return item.file as T
   }
 
-  release<T extends file.File>(f: T) {
+  weakRefer<T extends file.BaseFile>(path: string): (T|null) {
+    let item = this._pool.get(path)
+    if (!item) {
+      return null
+    }
+    return item.file as T
+  }
+
+  release<T extends file.BaseFile>(f: T) {
     const item = this._pool.get(f.path)
     if (item === undefined) {
       console.error(`path no exist in file pool: ${f.path}`)

@@ -3,6 +3,7 @@ import { BPLInstance, BPLType } from "./link"
 import { BPN, BPNInstance, BPNType } from "./node"
 import { BPSInstance, BPSType } from "./slot"
 import { flatten } from 'lodash'
+import { BPDInstance } from "./data"
 
 export class BPCtx {
 
@@ -14,6 +15,8 @@ export class BPCtx {
   constructor(name: string) {
     this.name = name
   }
+
+  locals: BPDInstance[] = []
 
   /**
    * 

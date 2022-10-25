@@ -2,10 +2,16 @@
 import { computed } from '@vue/reactivity';
 import { onMounted, ref, watch } from 'vue'
 import { useMousePosOnCanvas } from '../../util/hooks'
-import { editor, inspector } from '../../util/editor';
+import { editorBus, inspector } from '../../util/editor';
+import { BPCtx } from '../../util/blueprint/context';
+import { BPCI } from '../../util/blueprint/struct';
 
-const context = computed(() => editor.value.tab?.context)
-const paths = computed(() => context.value?.links.map(x => x.pathString))
+const { context, } = defineProps<{
+  context: BPCtx, // 当前操作的上下文
+}>()
+
+
+const paths = computed(() => context.links.map(x => x.pathString))
 
 /**
  * 
@@ -14,13 +20,13 @@ const paths = computed(() => context.value?.links.map(x => x.pathString))
  */
 const { mousePosition } = useMousePosOnCanvas()
 watch(mousePosition, val => {
-  if (context.value?.pendingLink) {
-    context.value.pendingLink.to = val
+  if (context.pendingLink) {
+    context.pendingLink.to = val
   }
 })
-watch(computed(() => context.value?.pendingLink), val => {
+watch(computed(() => context.pendingLink), val => {
   if (val) {
-    context.value!.pendingLink!.to = mousePosition.value
+    context.pendingLink!.to = mousePosition.value
   }
 })
 
@@ -32,11 +38,11 @@ watch(computed(() => context.value?.pendingLink), val => {
 
 const clickPath = (index: number) => {
   
-  const link = context.value!.links[index]
+  const link = context.links[index]
   if (!link) {
     return
   }
-  context.value?.removeLink(link)
+  context.removeLink(link)
 }
 
 const preventSelection = () => {

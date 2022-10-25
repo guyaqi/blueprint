@@ -1,6 +1,6 @@
 
 import { file } from "."
-import { BpSrcFile, File } from "./file"
+import { BpSrcFile, BaseFile } from "./file"
 
 // 使用指定的子路径，定位至特定文件类型的某种上下文
 // 返回值为any，因为无法统一不同文件的子内容类型，即使使用模板，也无法为下文增加有帮助的类型提示
@@ -10,13 +10,13 @@ interface FilePartIndexer {
 }
 
 // type IndexableFileFactory = (path: string) => Promise<FilePartIndexer>
-type FileFactoryFunction = (path: string) => Promise<file.File>
+type FileFactoryFunction = (path: string) => Promise<file.BaseFile>
 
 // *单例
 // 注册文件后缀名对应的文件工厂函数
 export class FileFactory {
   // private _indexers = new Map<string, IndexableFileFactory>()
-  private _map = new Map<string, FileFactoryFunction>()
+  _map = new Map<string, FileFactoryFunction>()
 
   // registerIndexable(postfix: string, handler: IndexableFileFactory) {
   //   this._indexers.set(postfix, handler)
@@ -30,12 +30,15 @@ export class FileFactory {
     this._map.set(postfix, handler)
   }
 
-  getFactory(postfix:string): FileFactoryFunction {
+  getFactory(postfix: string): FileFactoryFunction {
     let res: (FileFactoryFunction | undefined)
+    // console.warn(postfix)
+    // console.warn(this._map)
     res = this._map.get(postfix)
+    // console.warn(res)
     // fallback
     if (!res) {
-      res = (path) => file.File.open(path)
+      res = (path) => file.BaseFile.open(path)
     }
     return res
   }
@@ -55,4 +58,7 @@ export class FileFactory {
 
 // 未注册的后缀名，通过FileFactory.instance.getFactory可以返回一个fallback
 // 改fallback函数将返回一个普通的File
-FileFactory.instance.registerIndexable('bp', (path) => BpSrcFile.open(path))
+FileFactory.instance.register('bp', async (path) => {
+  const f = await file.BaseFile.open(path)
+  return BpSrcFile.from(f)
+})

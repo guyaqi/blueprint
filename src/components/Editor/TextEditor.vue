@@ -75,7 +75,7 @@ onMounted(() => {
       <div class="view-icon" :style="{ 'width': linoWidth+'px' }">
         <img src="../../assets/images/view.svg" alt="">
       </div>
-      <div class="pl-2 hint-text">View only, blueprint is not a code editor. | {{ tab.title }}</div>
+      <div class="pl-2 hint-text">View only, blueprint is not a code editor.</div>
     </div>
     <div class="main-wrap scroll-appearance">
       <div class="main">

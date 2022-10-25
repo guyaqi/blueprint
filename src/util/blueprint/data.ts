@@ -19,10 +19,12 @@ export enum BPDType {
 
 export class BPDInstance {
   type: BPDType
+  name: string
   inner: any
   
-  constructor(type: BPDType, inner: any) {
+  constructor(type: BPDType, name: string, inner: any) {
     this.type = type
+    this.name = name
     this.inner = inner
   }
 }

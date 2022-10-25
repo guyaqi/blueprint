@@ -1,17 +1,17 @@
 import { sequenceName } from "../naming";
 import { shell } from "../logger";
 import { BPCtx } from "./context";
-import { BPDType } from "./data";
+import { BPDInstance, BPDType } from "./data";
 import { BPN } from "./node";
 
 // Blueprint Class
 export class BPC {
   name: string
 
-  members: BPDType[]
+  members: BPDInstance[]
   functions: BPN[]
 
-  constructor(name: string, members: BPDType[], functions: BPN[]) {
+  constructor(name: string, members: BPDInstance[], functions: BPN[]) {
     this.name = name
     this.members = members
     this.functions = functions

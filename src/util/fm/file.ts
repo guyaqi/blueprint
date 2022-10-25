@@ -4,7 +4,7 @@ import { os } from "../os"
 
 const { ipcRenderer } = require("electron")
 
-export class File {
+export class BaseFile {
 
   path: string
   buffer: Uint8Array
@@ -34,17 +34,28 @@ export class File {
   }
 
   partIndexer(locator: string): any {
-    throw new Error("Indexer not implemented.")
+    return null
   }
 
-  static readonly open = os.gChnlFunc<string, File>(
+  static readonly open = os.gChnlFunc<string, BaseFile>(
     'file-load',
     (path: string) => ({ path, }),
-    (res: any) => new File(res.path, res.buffer)
+    (res: any) => new BaseFile(res.path, res.buffer)
   )
+
+  isPureText(): boolean {
+    try {
+      const decoder = new TextDecoder()
+      decoder.decode(this.buffer)
+      return true
+    }
+    catch {
+      return false
+    }
+  }
 }
 
-export class TextFile extends File {
+export class TextFile extends BaseFile {
 
   // text: string
 
@@ -67,7 +78,7 @@ export class TextFile extends File {
     this.buffer = encoder.encode(value)
   }
   
-  static from(af: File): TextFile {
+  static from(af: BaseFile): TextFile {
     return new TextFile(af.path, af.buffer)
   }
 }
@@ -79,7 +90,8 @@ export class BpSrcFile extends TextFile {
 
     try {
       if (this.text === '') {
-        const bpc = new BPC(this.name, [], [])
+        const name = this.name.slice(0, this.name.length-3) // cut ".bp"
+        const bpc = new BPC(name, [], [])
         this._blueprint = new BPCI(bpc)
       }
       else {
@@ -100,17 +112,17 @@ export class BpSrcFile extends TextFile {
       return this.blueprint
     }
 
-    const res = this.blueprint.contexts.find(x => x.name == 'locator')
+    const res = this.blueprint.contexts.find(x => x.name == locator)
 
     if (!res) {
-      console.warn('contexts: ', this.blueprint.contexts)
+      console.warn('contexts: ', this.blueprint.contexts) 
       throw new Error(`gg when BpSrcFile.partIndexer: no context named: ${locator}`)
     }
 
     return res
   }
 
-  static from(f: File): BpSrcFile {
+  static from(f: BaseFile): BpSrcFile {
     return new BpSrcFile(f.path, f.buffer)
   }
 }

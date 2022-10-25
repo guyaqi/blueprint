@@ -10,9 +10,14 @@ import ContentMenu from './ContentMenu.vue';
 import { computed } from '@vue/reactivity';
 import Func from '../GraphNode/Func.vue';
 import ImportantProcess from '../GraphNode/ImportantProcess.vue';
-import { editor } from '../../util/editor';
 import NodeWrapper from '../GraphNode/NodeWrapper.vue';
-import { BPCtx } from 'src/util/blueprint/context';
+import { BPCtx } from '../../util/blueprint/context';
+import { BPCI } from '../../util/blueprint/struct';
+
+const { context, } = defineProps<{
+  context: BPCtx, // 当前操作的上下文
+  root: BPCI // 上下文所在的蓝图
+}>()
 
 
 const mouseup = (e: MouseEvent) => {
@@ -29,16 +34,6 @@ const mousemove = (e: MouseEvent) => {
  * 
  */
 const rootRef = ref(null as (null | HTMLElement))
-
-/**
- * 
- * 蓝图相关
- * 
- */
-const { context, } = defineProps<{
-  context: BPCtx
-}>()
-// const context = computed(() => editor.value.oCtx)
 
 /**
  * 
@@ -86,7 +81,7 @@ watch(computed(() => context.nodes), (value, oldValue) => {
   
     <NodeWrapper v-if="context" v-for="node in context.nodes" :inst="node"  />
 
-    <LinkLayer class="link-layer-z" />
+    <LinkLayer class="link-layer-z" :context="context" />
     <ContentMenu v-show="isBpMenuShown" :style="bpMenuStyleExtra" @close="isBpMenuShown=false" />
   </div>
 </template>
@@ -95,7 +90,7 @@ watch(computed(() => context.nodes), (value, oldValue) => {
 .graph-canvas {
   background-image: url('../../assets/images/Grid.svg');
   width: 100%;
-  height: calc(100% - 32px);
+  height: 100%;
   position: relative;
 
   .no-open-things {
