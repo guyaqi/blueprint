@@ -4,6 +4,7 @@ import { Point } from '../../util/blueprint/math';
 import { BPSType, BPS, BPSInstance } from '../../util/blueprint/slot';
 import BSlotIcon from '../Graph/BSlotIcon.vue';
 import { editorBus } from '../../util/editor';
+import { canvasBus } from '../../util/canvas';
 
 const { instance, } = defineProps<{ instance: BPSInstance }>()
 
@@ -20,13 +21,12 @@ const click = () => {
   if (isLiterial) {
     return
   }
-  editorBus.value.tab?.context?.clickSlot(instance)
+  editorBus.value.tab?.content?.clickSlot(instance)
 }
 
 const root: Ref<null | HTMLElement> = ref(null)
-let canvasEl: (null | HTMLElement) = null
 
-const NODE_CLASSNAME = 'bp-node'
+const NODE_CLASSNAME = 'node-wrapper'
 
 // (mutationsList: any, observer: any)
 const mountedNodeMove = () => {
@@ -34,21 +34,20 @@ const mountedNodeMove = () => {
     return
   }
   let iconRect = iconRef.value!.getBoundingClientRect()
-  const canvasRect = canvasEl!.getBoundingClientRect()
+
+  const canvasPos = canvasBus.value.canvasPosOnScreen
 
   const position: Point = {
-    x: iconRect.left + iconRect.width / 2 - canvasRect.left,
-    y: iconRect.top + iconRect.height / 2 - canvasRect.top,
+    x: iconRect.left + iconRect.width / 2 - canvasPos.x,
+    y: iconRect.top + iconRect.height / 2 - canvasPos.y,
   }
 
   instance.position = position
 }
 
 onMounted(() => {
-  canvasEl = document.querySelector('.graph-canvas')
-
   let parent = root.value!.parentNode as HTMLElement
-  for(let i=0; i<10; i++) {
+  while (true) {
     if (parent.classList.contains(NODE_CLASSNAME)) {
       break
     }
@@ -63,9 +62,11 @@ onMounted(() => {
   
   const observer = new MutationObserver((mutationsList: any, observer: any) => { mountedNodeMove() });
 
-  observer.observe(parent as Node, { attributes: true, childList: true, subtree: true });
+  observer.observe(parent as Node, { attributes: true });
 
-  mountedNodeMove()
+  setTimeout(() => {
+    mountedNodeMove()
+  })
 
   if (isLiterial && instance.literial === undefined) {
     instance.literial = ''

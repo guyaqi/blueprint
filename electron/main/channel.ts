@@ -62,10 +62,6 @@ export const _treeDir = (_path: string): FsTreeNode => {
 
 
 
-const FILE_SAVE_CHANNEL = 'file-save'
-const fileSave = async (e: IpcMainEvent, path: string, buf: Buffer) => {
-  fs.writeFileSync(path, buf)
-}
 
 type HttpOptions = {
 
@@ -87,8 +83,6 @@ export function useChannels(webContents: WebContents) {
 
   // ipcMain.on(WORKSPACE_LOAD_CHANNEL, workspaceLoad)
 
-  ipcMain.on(FILE_SAVE_CHANNEL, fileSave)
-
   ipcMain.on(HTTP_CHANNEL, httpRequest)
 
   
@@ -100,6 +94,19 @@ export function useChannels(webContents: WebContents) {
   //   }
   //   e.reply(WORKSPACE_LOAD_CHANNEL, _treeDir(path))
   // }
+
+  //   const FILE_SAVE_CHANNEL = 'file-save'
+  // const fileSave = async (e: IpcMainEvent, path: string, buf: Buffer) => {
+  //   fs.writeFileSync(path, buf)
+  // }
+
+  addClientChannel('file-save', (e, c, s, d: { path: string, buffer: Buffer }) => {
+    fs.writeFileSync(d.path, d.buffer)
+    e.reply(c, s, {
+
+    })
+  })
+
 
   addClientChannel('workspace-load', (e, c, s, d: { path: string }) => {
     if (!isDir(d.path)) {

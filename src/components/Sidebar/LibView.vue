@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import store from '../../store';
-import TreeItem from '../common/Tree/TreeItem.vue'
 
 // defineProps<{ msg: string }>()
 

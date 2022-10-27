@@ -8,16 +8,16 @@ const { instance, preview } = defineProps<{ instance: BPNInstance, preview?: boo
 const { config } = instance
 const isPreview = !!preview
 
-const {
-  style,
-  mousedown,
-  nodeDom,
-} = useBPNH(instance, isPreview)
+// const {
+//   style,
+//   mousedown,
+//   nodeDom,
+// } = useBPNH(instance, isPreview)
 
 </script>
   
 <template>
-  <div class="bp-node" ref="nodeDom" :style="(style as any)" @mousedown="mousedown">
+  <div class="bp-node" ref="nodeDom">
     <div class="ip-head">
       <div class="name">{{ config.name }}</div>
       <div v-if="config.remark" class="remark">{{ config.remark }}</div>

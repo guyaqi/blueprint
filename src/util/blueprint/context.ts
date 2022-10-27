@@ -42,19 +42,13 @@ export class BPCtx {
     starti.position = {x: 100, y: 100}
 
     const endi = new BPNInstance(sePair.end)
-    const canvasRect = BPCtx.getCanvasRect()
-    endi.position = canvasRect ? { x:canvasRect.width-300, y: 100 } : { x: 100, y: 300 }
+
+    endi.position = { x: 100, y: 300 }
     
     ctx.nodes.push(starti)
     ctx.nodes.push(endi)
 
     return ctx
-  }
-
-  static getCanvasRect() {
-    const className = '.graph-canvas'
-    const canvasEle = document.querySelector(className)
-    return canvasEle?.getBoundingClientRect()
   }
 
 

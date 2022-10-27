@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import store from '../store';
+// import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+// import store from '../store';
 
 /**
  * 
  * 连接工作区相关
  * 
  */
-const trying = ref(false)
+// const trying = ref(false)
 
 // const connectWorkspace = async () => {
 //   if (trying.value) {
@@ -24,7 +24,7 @@ const trying = ref(false)
 //   trying.value = false
 // }
 
-const statusText = ref('工作区未连接, 点击以连接')
+// const statusText = ref('工作区未连接, 点击以连接')
 
 // setTimeout(() => {
 //   if (!store.state.service && !trying.value) {

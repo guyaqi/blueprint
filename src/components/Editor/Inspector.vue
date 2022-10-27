@@ -33,6 +33,20 @@ const openFunctionContext = (name: string) => {
   
   const path = `${pp.rootPath}>${name}`
 
+  // 如果是新建的 function ，并不会有context，需要先创建一个
+  if (pp.blueprint.contexts.findIndex(x => x.name == name) < 0) {
+
+    const func = pp.blueprint.config.functions.find(x => x.name == name)
+
+    if (!func) {
+      throw new Error(`function: "${name}" is opened before create a context for it`)
+    }
+
+    const newCtx = BPCtx.fromFunction(func)
+
+    pp.blueprint.contexts.push(newCtx)
+  }
+
   editorBus.value.openFile(path)
 
   // 如果没有指定context，说明是从蓝图根文件打开

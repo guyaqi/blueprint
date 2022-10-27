@@ -1,8 +1,9 @@
 
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
-import store from "../store";
+// import store from "../store";
 import { Point } from "./blueprint/math";
 import { BPNInstance } from "./blueprint/node";
+import { canvasBus } from './canvas'
 
 // vue BPN Hook
 
@@ -15,16 +16,18 @@ export const useBPNH = (node: BPNInstance, isPreview: boolean = false) => {
 
   const mousedown = (e: MouseEvent) => {
     holding.value = true
-    store.commit('graphMouseHold', true)
+    canvasBus.value.graphMouseHold = true
+
+    const nodeRect = nodeDom.value!.getBoundingClientRect()
   
-    holdOffset.value.x = nodeDom.value!.offsetLeft - e.screenX
-    holdOffset.value.y = nodeDom.value!.offsetTop - e.screenY
+    holdOffset.value.x = nodeRect.x - e.clientX
+    holdOffset.value.y = nodeRect.y - e.clientY
   }
 
-  const mousemove = (e: MouseEvent) => {
+  const mousemove = (p: Point) => {
     if (holding.value) {
-      node.position.x = holdOffset.value.x + e.screenX
-      node.position.y = holdOffset.value.y + e.screenY
+      node.position.x = holdOffset.value.x + p.x
+      node.position.y = holdOffset.value.y + p.y
     }
   }
 
@@ -34,14 +37,14 @@ export const useBPNH = (node: BPNInstance, isPreview: boolean = false) => {
     position: isPreview ? 'static' : 'absolute'
   }))
 
-  watch(computed(() => store.state.graphMouseHold), (val) => {
+  watch(computed(() => canvasBus.value.graphMouseHold), (val) => {
     if (!val) {
       holding.value = false
     }
   })
   
-  watch(computed(() => store.state.graphMouseEvent), (e) => {
-    mousemove(e!)
+  watch(computed(() => canvasBus.value.mousePosOnTransformLayer), (p) => {
+    mousemove(p)
   })
 
   return {
@@ -49,53 +52,5 @@ export const useBPNH = (node: BPNInstance, isPreview: boolean = false) => {
     style,
     // updateStyle,
     mousedown,
-  }
-}
-
-
-export const useMousePosOnCanvas = () => {
-
-  let canvasNode: (null | HTMLElement) = null
-  // const canvasRect = 
-
-  const mousePosition = ref({ x: 0, y: 0 } as Point)
-
-  let _lastE: (MouseEvent | null) = null
-  const _calcPos = (e: MouseEvent) => {
-    const canvasRect = canvasNode!.getBoundingClientRect()
-    // mousePosition.value.x = e.clientX - canvasRect!.x
-    // mousePosition.value.y = e.clientY - canvasRect!.y
-    mousePosition.value = {
-      x: e.clientX - canvasRect!.x,
-      y: e.clientY - canvasRect!.y
-    }
-    // console.log(mousePosition.value);
-  }
-
-  const mouseMoveHandler = (e: MouseEvent) => {
-    _calcPos(e)
-    _lastE = e
-  }
-
-  const canvasResizeHandler = () => {
-    console.log('canvas resize');
-    _calcPos(_lastE!)
-  }
-  
-
-  onMounted(() => {
-    canvasNode = document.querySelector('.graph-canvas')
-
-    window.addEventListener('mousemove', mouseMoveHandler)
-    ;(canvasNode as HTMLElement).addEventListener('resize', canvasResizeHandler)
-  })
-
-  onUnmounted(() => {
-    window.removeEventListener('mousemove', mouseMoveHandler);
-    ;(canvasNode as HTMLElement).removeEventListener('resize', canvasResizeHandler)
-  })
-
-  return {
-    mousePosition,
   }
 }

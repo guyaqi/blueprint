@@ -6,7 +6,6 @@ import Sidebar from './components/Sidebar/Sidebar.vue';
 import Editor from './components/Editor/Editor.vue';
 import Menubar from './components/Menubar.vue';
 import PopupRoot from './components/Popup/PopupRoot.vue';
-import store from './store';
 import { onMounted, ref } from 'vue';
 import { editorBus, inspector } from './util/editor'
 import Statusbar from './components/Status/Statusbar.vue';
@@ -16,18 +15,24 @@ const { ipcRenderer } = require('electron');
 const trySave = (e: KeyboardEvent) => {
   // const service = store.state.service
 
-  
-  
+  // ctrl + s
 	if(e.key == 's' && (navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)){
     e.preventDefault();
     
-    if (!inspector.value.blueprint) {
-      return
-    }
-		editorBus.value.saveSrc()
+		editorBus.value.saveCurrent()
     
 		return false;
 	}
+  // ctrl + w
+  if(e.key == 'w' && (navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)){
+    e.preventDefault();
+    
+		editorBus.value.closeCurrent()
+    
+		return false;
+	}
+
+  // closeCurrent
 }
 
 const rootRef = ref(null as (null | HTMLElement))

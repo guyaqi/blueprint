@@ -6,6 +6,7 @@ import { BaseFile, TextFile } from "./fm/file"
 import { file, path } from "./fm"
 import { FileFactory } from "./fm/fileFactory"
 import { FilePool } from "./fm/filePool"
+import { Logger, shell } from "./logger"
 
 /**
  * ## FileType
@@ -64,6 +65,15 @@ export class FileTab {
       throw new Error('FileTab.content is called without open any file')
     }
     return this.file.partIndexer(this.innerIndex)
+  }
+
+  /**
+   * 等价于 `this.file.save()`
+   */
+  async save() {
+    if (this.file) {
+      await this.file.save()
+    }
   }
   
   /**
@@ -298,7 +308,7 @@ class EditorBus {
   // }
 
   close(index: number) {
-    this.tabs.splice(index, 1)
+    const [ tabClosed ] = this.tabs.splice(index, 1)
     if (this.tabs[this.tabIndex - 1]) {
       this.tabIndex -= 1
     }
@@ -308,6 +318,8 @@ class EditorBus {
     else {
       this.tabIndex = -1
     }
+
+    shell.debug(`关闭 [${tabClosed.title}]`, 'editor.ts')
   }
   
   /**
@@ -318,8 +330,13 @@ class EditorBus {
 
 
   // 渲染端想保存某个文件
-  async saveSrc() {
-    console.log('editor.save called')
+  async saveCurrent() {
+    const tab = this.tab
+    if (!tab || tab.fileType == FileType.Unsupported) {
+      return
+    }
+    tab.save()
+    shell.debug(`[${tab.title}] 保存成功`, 'editor.ts')
     // console.log('=== save bpc');
     // console.log(this.oBPCI);
 
@@ -332,6 +349,16 @@ class EditorBus {
 
     // this.oSF.text = s
     // this.oSF.save()
+  }
+
+  closeCurrent() {
+    if (!this.tab) {
+      return
+    }
+    const i = this.tabs.indexOf(this.tab)
+    if (i >= 0) {
+      this.close(i)
+    }
   }
 
 

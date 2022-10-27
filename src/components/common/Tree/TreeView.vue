@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ActionNode, Tree, BaseNode } from '../../../util/datastructure/tree';
+import { ActionNode, Tree, BaseNode } from '../../../util/basic/tree';
 import { ref, StyleValue } from 'vue'
 import TreeItem from './TreeItem.vue';
 import { computed } from '@vue/reactivity';

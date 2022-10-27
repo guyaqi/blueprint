@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity';
+import { canvasBus } from '../../util/canvas';
 import { onMounted, ref, watch } from 'vue'
-import { useMousePosOnCanvas } from '../../util/hooks'
-import { editorBus, inspector } from '../../util/editor';
 import { BPCtx } from '../../util/blueprint/context';
-import { BPCI } from '../../util/blueprint/struct';
 
 const { context, } = defineProps<{
   context: BPCtx, // 当前操作的上下文
@@ -18,15 +16,14 @@ const paths = computed(() => context.links.map(x => x.pathString))
  * 鼠标位置追踪
  * 
  */
-const { mousePosition } = useMousePosOnCanvas()
-watch(mousePosition, val => {
+watch(() => canvasBus.value.mousePosOnCanvas, val => {
   if (context.pendingLink) {
     context.pendingLink.to = val
   }
 })
 watch(computed(() => context.pendingLink), val => {
   if (val) {
-    context.pendingLink!.to = mousePosition.value
+    context.pendingLink!.to = canvasBus.value.mousePosOnCanvas
   }
 })
 
@@ -46,7 +43,7 @@ const clickPath = (index: number) => {
 }
 
 const preventSelection = () => {
-  document.getSelection()?.removeAllRanges()
+  // document.getSelection()?.removeAllRanges()
 }
 
 
@@ -54,7 +51,8 @@ const preventSelection = () => {
   
 <template>
   <svg class="link-layer" @dblclick="preventSelection">
-    <path v-for="(path, index) in paths" :d="path" style="stroke: white;stroke-width:2; fill:none" @dblclick.prevent="(e) => clickPath(index)"/>
+    <path v-for="(path, index) in paths"
+      :d="path" style="stroke: white;stroke-width:2; fill:none" @dblclick.prevent="(e) => clickPath(index)"/>
   </svg>
 </template>
   

@@ -73,7 +73,7 @@ const instantiate = (s: BPSymbol) => {
   const node = new BPNInstance(s.toBPN())
   node.position = genPos
 
-  editorBus.value.tab?.context?.nodes.push(node)
+  editorBus.value.tab?.content?.nodes.push(node)
 
   emit('close')
 }

@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 
-import { shell } from '../../util/logger'
-import store from '../../store'
-import network from '../../util/network';
-
 
 /**
  * 

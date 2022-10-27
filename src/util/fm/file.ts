@@ -29,9 +29,14 @@ export class BaseFile {
     return false
   }
 
-  save() {
-    ipcRenderer.send('file-save', this.path, this.buffer)
+  async save() {
+    // ipcRenderer.send('file-save', this.path, this.buffer)
+    await BaseFile._save({ path: this.path, buffer: this.buffer })
   }
+
+  private static readonly _save = os.gChnlFunc<{ path: string, buffer: Uint8Array }, void>(
+    'file-save'
+  )
 
   partIndexer(locator: string): any {
     return null
@@ -124,5 +129,10 @@ export class BpSrcFile extends TextFile {
 
   static from(f: BaseFile): BpSrcFile {
     return new BpSrcFile(f.path, f.buffer)
+  }
+
+  override async save() {
+    this.text = JSON.stringify(this.blueprint)
+    await super.save()
   }
 }

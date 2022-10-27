@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, StyleValue } from 'vue'
 import TreeItem from './TreeItem.vue';
-import { Tree, BaseNode } from '../../../util/datastructure/tree';
+import { Tree, BaseNode } from '../../../util/basic/tree';
 
 const props = defineProps<{
   tree: Tree<any>,

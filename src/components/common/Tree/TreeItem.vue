@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, StyleValue } from 'vue'
-import { Tree, BaseNode } from '../../../util/datastructure/tree';
+import { Tree, BaseNode } from '../../../util/basic/tree';
 
 import { useLocalStorage } from '@vueuse/core'
 import { computed } from '@vue/reactivity';

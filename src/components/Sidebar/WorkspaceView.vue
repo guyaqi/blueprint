@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
-import store from '../../store';
 import { FsTreeNode } from '../../util/workspace';
-import { ActionNode, BaseNode, Tree } from '../../util/datastructure/tree';
-import TreeItem from '../common/Tree/TreeItem.vue';
+import { ActionNode, BaseNode, Tree } from '../../util/basic/tree';
 import { workspace } from '../../util/workspace'
 import { editorBus } from '../../util/editor';
 import { os } from '../../util/os'
