@@ -15,13 +15,16 @@ export const useBPNH = (node: BPNInstance, isPreview: boolean = false) => {
   
 
   const mousedown = (e: MouseEvent) => {
-    holding.value = true
-    canvasBus.value.graphMouseHold = true
+    if (e.button === 0) {
+      holding.value = true
+      canvasBus.value.graphMouseHold = true
 
-    const nodeRect = nodeDom.value!.getBoundingClientRect()
-  
-    holdOffset.value.x = nodeRect.x - e.clientX
-    holdOffset.value.y = nodeRect.y - e.clientY
+      const nodeRect = nodeDom.value!.getBoundingClientRect()
+    
+      holdOffset.value.x = nodeRect.x - e.clientX
+      holdOffset.value.y = nodeRect.y - e.clientY
+    }
+    
   }
 
   const mousemove = (p: Point) => {

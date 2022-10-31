@@ -21,6 +21,7 @@ export class BPLInstance {
   }
 
   get pathString() {
+    
     if (this.type == BPLType.LINE) {
       const p1 = this.from.position
       const p2 = this.to instanceof BPSInstance ? this.to.position : this.to

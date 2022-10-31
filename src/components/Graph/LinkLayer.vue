@@ -16,14 +16,14 @@ const paths = computed(() => context.links.map(x => x.pathString))
  * 鼠标位置追踪
  * 
  */
-watch(() => canvasBus.value.mousePosOnCanvas, val => {
+watch(() => canvasBus.value.mousePosOnTransformLayer, val => {
   if (context.pendingLink) {
     context.pendingLink.to = val
   }
 })
 watch(computed(() => context.pendingLink), val => {
   if (val) {
-    context.pendingLink!.to = canvasBus.value.mousePosOnCanvas
+    context.pendingLink!.to = canvasBus.value.mousePosOnTransformLayer
   }
 })
 

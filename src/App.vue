@@ -12,8 +12,8 @@ import Statusbar from './components/Status/Statusbar.vue';
 
 const { ipcRenderer } = require('electron');
 
-const trySave = (e: KeyboardEvent) => {
-  // const service = store.state.service
+const globalKeyDown = (e: KeyboardEvent) => {
+  // console.log(e.key)
 
   // ctrl + s
 	if(e.key == 's' && (navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)){
@@ -38,7 +38,7 @@ const trySave = (e: KeyboardEvent) => {
 const rootRef = ref(null as (null | HTMLElement))
 
 onMounted(() => {
-  window.addEventListener('keydown', trySave)
+  window.addEventListener('keydown', globalKeyDown)
 })
 
 // ipcRenderer.on('workspace-open', () => {

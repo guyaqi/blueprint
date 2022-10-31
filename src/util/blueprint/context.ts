@@ -4,6 +4,7 @@ import { BPN, BPNInstance, BPNType } from "./node"
 import { BPSInstance, BPSType } from "./slot"
 import { flatten } from 'lodash'
 import { BPDInstance } from "./data"
+import { Point } from "./math"
 
 export class BPCtx {
 
@@ -39,11 +40,11 @@ export class BPCtx {
     const ctx = new BPCtx(node.name)
     
     const starti = new BPNInstance(sePair.start)
-    starti.position = {x: 100, y: 100}
+    starti.position = new Point(100, 100)
 
     const endi = new BPNInstance(sePair.end)
 
-    endi.position = { x: 100, y: 300 }
+    endi.position = new Point(100, 300)
     
     ctx.nodes.push(starti)
     ctx.nodes.push(endi)
@@ -78,7 +79,8 @@ export class BPCtx {
 
   clickSlot(bpsi: BPSInstance) {
     if (!this.pendingLink) {
-      this.pendingLink = new BPLInstance(BPLType.LINE, bpsi, { x: 100, y: 100 })
+      const np = new Point()
+      this.pendingLink = new BPLInstance(BPLType.LINE, bpsi, np)
     }
     else {
       this._links.push(new BPLInstance(BPLType.LINE, bpsi, this.pendingLink.from))

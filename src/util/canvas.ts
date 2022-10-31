@@ -4,9 +4,11 @@ import { Point } from './blueprint/math'
 class CanvasBus {
   graphMouseHold = false
   // graphMouseEvent = null as (null | MouseEvent)
-  mousePosOnTransformLayer = { x: 0, y: 0 } as Point
-  mousePosOnRootLayer = { x: 0, y: 0 } as Point
-  canvasPosOnScreen = { x: 0, y: 0 } as Point
+  mousePosOnTransformLayer = new Point()
+  mousePosOnRootLayer = new Point()
+
+  rootLayerPos = new Point()
+  transformLayerPos = new Point()
 }
 
 export const canvasBus = ref(new CanvasBus)

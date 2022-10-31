@@ -35,7 +35,7 @@ const mountedNodeMove = () => {
   }
   let iconRect = iconRef.value!.getBoundingClientRect()
 
-  const canvasPos = canvasBus.value.canvasPosOnScreen
+  const canvasPos = canvasBus.value.transformLayerPos
 
   const position: Point = {
     x: iconRect.left + iconRect.width / 2 - canvasPos.x,

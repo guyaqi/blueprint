@@ -11,6 +11,12 @@ export class Point {
     this.x = x
     this.y = y
   }
+
+  distance(p: Point): number {
+    const a0 = Math.pow(p.x - this.x, 2)
+    const a1 = Math.pow(p.y - this.y, 2)
+    return Math.sqrt(a0 + a1)
+  }
 }
 
 export class Line {
